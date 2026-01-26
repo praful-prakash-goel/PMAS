@@ -11,7 +11,7 @@ The system helps organizations minimize unexpected breakdowns, reduce maintenanc
 - Reduce unplanned downtime
 - Optimize maintenance schedules
 - Improve equipment lifespan and reliability
-- Automate maintenance decision-making
+- Automate maintenance decision making
 
 ---
 
