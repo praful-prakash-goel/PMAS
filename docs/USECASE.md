@@ -2,6 +2,10 @@
 
 ![](Usecase_diagram.png)
 
+### Aim of the Use Case Diagram (Predictive Maintenance System):
+
+To illustrate how different users interact with the Predictive Maintenance Automation System to monitor machine health, collect and analyze sensor data, predict failures, detect anomalies, generate alerts, and manage maintenance activities efficiently—thereby reducing downtime, preventing unexpected failures, and optimizing maintenance operations.
+
 ## 1. Actors
 
 ### 1.1 Human Actors
