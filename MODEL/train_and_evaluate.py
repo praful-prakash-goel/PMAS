@@ -104,6 +104,7 @@ def create_dataloaders(train_dataset, val_dataset, test_dataset, batch_size=32):
     if DEVICE.type == 'cuda':
         # GPU optimization
         pin_memory = True
+        num_workers = 8
         print(f"🚀 GPU detected: Using {num_workers} workers and pin_memory=True for optimal performance")
     elif DEVICE.type == 'mps':
         # Mac M1/M2/M3 optimization
