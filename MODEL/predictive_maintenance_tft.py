@@ -402,7 +402,7 @@ def train_model(model, train_loader, val_loader, epochs=50, learning_rate=0.001)
     
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='min', factor=0.5, patience=5, verbose=True
+        optimizer, mode='min', factor=0.5, patience=5
     )
     
     mse_loss = nn.MSELoss()
