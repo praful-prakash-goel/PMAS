@@ -216,17 +216,6 @@ maintenance = maint_model(features)
 4. **Leakage**: machine_failure column dropped after RUL computation
 5. **Device**: Auto-detects CUDA/MPS/CPU at runtime
 
-## 📝 Citation
-
-```bibtex
-@software{predictive_maintenance_2026,
-  title={Predictive Maintenance Automation System},
-  author={Claude},
-  year={2026},
-  description={End-to-end PyTorch implementation with TFT for RUL prediction}
-}
-```
-
 ## 📧 Support
 
 For issues or questions:

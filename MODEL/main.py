@@ -9,9 +9,6 @@ This script orchestrates the complete end-to-end pipeline:
 4. Model training (TFT, Health Status, Maintenance Type)
 5. Evaluation
 6. Example inference
-
-Author: Claude
-Date: 2026
 """
 
 import pandas as pd
