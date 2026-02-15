@@ -127,8 +127,7 @@ def train_health_status_model(model, train_loader, val_loader, config, device, c
         optimizer,
         mode='min',
         factor=config['scheduler_factor'],
-        patience=config['scheduler_patience'],
-        verbose=True
+        patience=config['scheduler_patience']
     )
     
     # Training history

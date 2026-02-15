@@ -119,8 +119,7 @@ def train_tft_model(model, train_loader, val_loader, config, device, checkpoint_
         mode='min',
         factor=config['scheduler_factor'],
         patience=config['scheduler_patience'],
-        min_lr=config['scheduler_min_lr'],
-        verbose=True
+        min_lr=config['scheduler_min_lr']
     )
     
     history = {
