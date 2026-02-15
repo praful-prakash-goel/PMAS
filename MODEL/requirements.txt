@@ -1,34 +1,5 @@
-# Predictive Maintenance System - Requirements
-# Optimized for Mac with MPS (Metal Performance Shaders)
-
-# Core Deep Learning
 torch>=2.0.0
-numpy>=1.24.0
-
-# Data Processing
 pandas>=2.0.0
+numpy>=1.24.0
 scikit-learn>=1.3.0
-
-# Visualization
-matplotlib>=3.7.0
-seaborn>=0.12.0
-
-# Utilities
 tqdm>=4.65.0
-
-# Optional: For advanced visualization
-plotly>=5.14.0
-
-# Optional: For model interpretability
-shap>=0.42.0
-
-# Optional: For experiment tracking
-tensorboard>=2.13.0
-
-# Note: For Mac users with Apple Silicon (M1/M2/M3):
-# - PyTorch with MPS support is included by default in torch>=2.0.0
-# - No need for separate CUDA installations
-# - The code automatically detects and uses MPS acceleration
-
-# Installation:
-# pip install -r requirements.txt

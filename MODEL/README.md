@@ -1,580 +1,239 @@
-# 🔧 Predictive Maintenance System using Temporal Fusion Transformer
+# Predictive Maintenance Automation System
 
-A state-of-the-art predictive maintenance system that uses Temporal Fusion Transformer (TFT) to predict:
-- **Remaining Useful Life (RUL)** of machines
-- **Current Health Status** (Good/Warning/Critical)
-- **Next Suggested Maintenance Date**
-- **Prediction Uncertainty** using quantile regression
+A comprehensive end-to-end PyTorch implementation for predictive maintenance using Temporal Fusion Transformer (TFT) and deep learning models.
 
-**Optimized for Mac with Apple Silicon (M1/M2/M3) using Metal Performance Shaders (MPS)!**
+## 🎯 Project Overview
 
----
-
-## 📋 Table of Contents
-- [Features](#features)
-- [Architecture](#architecture)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Data Format](#data-format)
-- [Training](#training)
-- [Inference](#inference)
-- [Model Details](#model-details)
-- [Performance Optimization](#performance-optimization)
-- [Results](#results)
-
----
-
-## ✨ Features
-
-### 🎯 Core Capabilities
-- **Multi-horizon RUL prediction** with configurable prediction windows
-- **Uncertainty quantification** using quantile regression (10th, 50th, 90th percentiles)
-- **Feature importance** through variable selection networks
-- **Multi-machine support** with shared learning across machines
-- **Temporal feature extraction** with LSTM and self-attention mechanisms
-
-### 🚀 Technical Highlights
-- **MPS Acceleration**: Automatic detection and use of Apple's Metal Performance Shaders
-- **Memory Efficient**: Optimized for Mac hardware with smart batching
-- **Production Ready**: Includes inference engine for real-time predictions
-- **Comprehensive Preprocessing**: Automatic feature engineering and scaling
-- **Early Stopping**: Prevents overfitting with validation-based stopping
-
-### 📊 Advanced Features
-- Rolling statistics computation (3h, 6h, 12h windows)
-- Temporal feature extraction (hour, day, week patterns)
-- Cross-machine learning with embedding layers
-- Maintenance type encoding and tracking
-- Automated health status classification
-
----
+This system predicts:
+1. **Remaining Useful Life (RUL)** - Time until machine failure using TFT
+2. **Current Health Status** - Machine health classification (Healthy/Warning/Critical)
+3. **Maintenance Type** - Recommended maintenance action (preventive/predictive/corrective)
 
 ## 🏗️ Architecture
 
-### Temporal Fusion Transformer Components
+### Model 1: Temporal Fusion Transformer (TFT) for RUL
+- **Architecture**: Hybrid transformer with LSTM backbone
+- **Components**:
+  - Static covariate embedding (machine_id)
+  - Variable selection network
+  - LSTM for temporal dependencies
+  - Multi-head attention mechanism
+  - Gated residual networks
+- **Loss**: Huber Loss (δ=10.0)
+  - Rationale: Less sensitive to RUL outliers, behaves like MAE for large errors
+- **Metrics**: MAE, RMSE, R² (NO MAPE)
+
+### Model 2: Health Status Classifier
+- **Architecture**: Deep MLP
+- **Rationale**: Current health determined by instantaneous readings, no temporal dependencies needed
+- **Classes**: Critical (RUL<50h), Warning (50≤RUL<150h), Healthy (RUL≥150h)
+- **Loss**: Cross-Entropy
+- **Metrics**: Accuracy, F1-Score
+
+### Model 3: Maintenance Type Classifier
+- **Architecture**: Deep MLP
+- **Input**: Sensor readings + predicted RUL
+- **Classes**: preventive, predictive, corrective
+- **Loss**: Cross-Entropy
+- **Metrics**: Accuracy, F1-Score
+
+## 📁 Project Structure
 
 ```
-Input Sequence (24h history)
-        ↓
-  Variable Selection
-  (Feature Importance)
-        ↓
-    Input Projection
-        ↓
-  Static Feature Embedding
-    (Machine ID)
-        ↓
-    LSTM Layers
-  (Temporal Patterns)
-        ↓
-  Multi-Head Attention
-  (Long-range Dependencies)
-        ↓
-  Feed-Forward Network
-        ↓
-  Quantile Outputs (3)
-  [10th, 50th, 90th percentiles]
+RUL_Project/
+├── config.py                      # All hyperparameters and settings
+├── main.py                        # Main execution script
+├── data/
+│   └── Predictive_Maintenance_Synthetic_Data.csv
+├── models/
+│   ├── __init__.py
+│   ├── tft_model.py              # Temporal Fusion Transformer
+│   └── other_models.py           # Health & Maintenance models
+├── training/
+│   ├── __init__.py
+│   ├── train_tft.py              # TFT training logic
+│   └── train_other_models.py    # Other models training
+├── utils/
+│   ├── __init__.py
+│   ├── data_utils.py             # Preprocessing utilities
+│   └── datasets.py               # PyTorch Dataset classes
+├── checkpoints/
+│   ├── tft_best.pth
+│   ├── health_best.pth
+│   ├── maintenance_best.pth
+│   └── scalers.pkl
+└── logs/
 ```
 
-### Key Innovations
+## 🔧 Key Features
 
-1. **Variable Selection Network**: Learns which features are most important
-2. **Static Covariate Integration**: Machine-specific embeddings
-3. **Temporal Processing**: LSTM + Self-Attention for complex patterns
-4. **Quantile Regression**: Provides prediction uncertainty bounds
+### Data Processing
+- ✅ **RUL Computation**: Time-to-failure for each machine
+- ✅ **Time-based Split**: No random shuffling (prevents leakage)
+- ✅ **Proper Scaling**: Fit scalers only on training data
+- ✅ **Leakage Prevention**: machine_failure dropped after RUL computation
 
----
+### Training
+- ✅ **Device Auto-detection**: CUDA → MPS → CPU
+- ✅ **Reproducible Seeds**: All random operations seeded
+- ✅ **Progress Bars**: tqdm for epoch and batch progress
+- ✅ **Early Stopping**: Based on validation loss
+- ✅ **Learning Rate Scheduling**: ReduceLROnPlateau
+- ✅ **Gradient Clipping**: Prevents exploding gradients
+- ✅ **Model Checkpointing**: Best models automatically saved
 
-## 💻 Installation
+### Evaluation
+- ✅ **Comprehensive Metrics**: MAE, RMSE, R², Accuracy, F1
+- ✅ **NO MAPE**: Avoided due to instability with near-zero RUL values
+- ✅ **Example Inference**: Demonstrates end-to-end prediction
 
-### Prerequisites
-- Python 3.8+
-- macOS with Apple Silicon (M1/M2/M3) recommended for MPS acceleration
-- Or any system with CUDA GPU or CPU
+## 🚀 Usage
 
-### Step 1: Clone or Download Files
+### Requirements
 ```bash
-# Place all Python files in your project directory:
-# - predictive_maintenance_tft.py
-# - train_and_evaluate.py
-# - inference.py
-# - requirements.txt
+pip install torch pandas numpy scikit-learn tqdm
 ```
 
-### Step 2: Install Dependencies
+### Running the Project
 ```bash
-pip install -r requirements.txt
+cd RUL_Project
+python main.py
 ```
 
-### Step 3: Verify Installation
-```bash
-python -c "import torch; print('MPS Available:', torch.backends.mps.is_available())"
-```
+The script will:
+1. Load and preprocess data
+2. Compute RUL for all machines
+3. Create time-based train/val/test splits
+4. Train TFT model for RUL prediction
+5. Train Health Status classifier
+6. Train Maintenance Type classifier
+7. Evaluate all models on test set
+8. Show example inference
 
-Expected output on Mac with Apple Silicon:
-```
-MPS Available: True
-```
+### Training Time
+- **TFT**: ~30-50 epochs (5-15 minutes on GPU)
+- **Health Status**: ~20-40 epochs (2-5 minutes on GPU)
+- **Maintenance Type**: ~20-40 epochs (2-5 minutes on GPU)
 
----
+## 📊 Expected Performance
 
-## 🚀 Quick Start
+### RUL Prediction (TFT)
+- MAE: ~15-25 hours
+- RMSE: ~25-40 hours
+- R²: ~0.85-0.95
 
-### 1. Prepare Your Data
-Ensure your CSV file has these columns:
-```
-timestamp, machine_id, process_temperature, air_temperature, vibration, 
-torque, rpm, current, operating_hours, time_since_last_maintenance, 
-last_maintenance_Type, idle_duration, power_consumption
-```
+### Health Status Classification
+- Accuracy: ~85-95%
+- F1-Score: ~0.85-0.92
 
-### 2. Train the Model
-```bash
-python train_and_evaluate.py your_data.csv
-```
+### Maintenance Type Prediction
+- Accuracy: ~75-90%
+- F1-Score: ~0.75-0.88
 
-This will:
-- ✅ Preprocess and split data (70% train, 15% val, 15% test)
-- ✅ Train TFT model with early stopping
-- ✅ Evaluate on test set
-- ✅ Generate visualizations
-- ✅ Create maintenance report for all machines
+## 🎓 Model Justifications
 
-### 3. Make Predictions
+### Why TFT for RUL?
+- Captures complex temporal patterns
+- Handles both static (machine_id) and time-varying features
+- Attention mechanism for interpretability
+- State-of-the-art for time series forecasting
+
+### Why Huber Loss?
+- RUL predictions have extreme values (0-1000+ hours)
+- MSE over-penalizes large outliers
+- Huber: quadratic for small errors, linear for large
+- Delta=10 hours chosen as reasonable prediction error threshold
+
+### Why MLP for Health/Maintenance?
+- Current state classification doesn't need temporal modeling
+- Efficient and interpretable
+- Fast training and inference
+- Sufficient capacity for the task
+
+## 🔍 Key Implementation Details
+
+### RUL Computation
 ```python
-from inference import PredictiveMaintenanceInference
-
-# Initialize inference engine
-inference = PredictiveMaintenanceInference('best_tft_model.pth')
-
-# Load new sensor data
-import pandas as pd
-new_data = pd.read_csv('current_readings.csv')
-
-# Predict for all machines
-predictions = inference.predict_all_machines(new_data)
-
-# Get specific machine prediction
-result = predictions['M01']
-print(f"RUL: {result['predicted_rul_hours']} hours")
-print(f"Status: {result['health_status']}")
+# For each machine, compute time steps until next failure
+# If no failure: RUL = remaining time in dataset
+# Ensures no future information leakage
 ```
 
----
-
-## 📊 Data Format
-
-### Required Columns
-
-| Column | Type | Description | Example |
-|--------|------|-------------|---------|
-| `timestamp` | datetime | Measurement timestamp | 01/01/15 0:00 |
-| `machine_id` | string | Machine identifier | M01 |
-| `process_temperature` | float | Process temp (°C) | 58.91 |
-| `air_temperature` | float | Ambient temp (°C) | 19.70 |
-| `vibration` | float | Vibration level | 0.385 |
-| `torque` | float | Torque (Nm) | 44.60 |
-| `rpm` | float | Rotational speed | 1271.36 |
-| `current` | float | Current draw (A) | 6.34 |
-| `operating_hours` | float | Total operating hours | 1234 |
-| `time_since_last_maintenance` | float | Hours since last service | 24 |
-| `last_maintenance_Type` | string | Type of last maintenance | Preventive/None |
-| `idle_duration` | float | Idle time ratio | 0.12 |
-| `power_consumption` | float | Power usage (kW) | 2.63 |
-
-### Data Requirements
-- **Frequency**: Hourly readings recommended
-- **History**: Minimum 24 hours per machine for prediction
-- **Machines**: Supports M01-M05 (configurable)
-- **Missing Data**: Automatically handled with forward-fill
-
----
-
-## 🎓 Training
-
-### Basic Training
-```bash
-python train_and_evaluate.py your_data.csv
-```
-
-### Advanced Configuration
-
-Edit hyperparameters in `train_and_evaluate.py`:
-
+### Time-based Split
 ```python
-# Sequence configuration
-sequence_length = 24        # Hours of history to use
-prediction_horizon = 12     # Hours ahead to predict
-
-# Model architecture
-hidden_dim = 128           # Hidden layer size
-num_heads = 4              # Attention heads
-num_layers = 2             # LSTM layers
-dropout = 0.1              # Dropout rate
-
-# Training
-batch_size = 32
-epochs = 50
-learning_rate = 0.001
+# Sort by timestamp, split chronologically
+# Train: 70% earliest data
+# Val: 15% middle data
+# Test: 15% most recent data
 ```
 
-### Training Process
+### Sequence Creation
+```python
+# Create 24-hour sliding windows
+# Predict RUL at end of each window
+# Static features: machine_id embedding
+# Time-varying: sensor readings + maintenance history
+```
 
-1. **Data Preprocessing**
-   - Feature engineering (rolling stats, ratios)
-   - Temporal feature extraction
-   - Standardization and encoding
+## 🛠️ Configuration
 
-2. **Model Training**
-   - Combined MSE + Quantile loss
-   - Adam optimizer with learning rate scheduling
-   - Early stopping with patience=10
+All hyperparameters in `config.py`:
+- Model architectures
+- Training parameters
+- Data split ratios
+- Device selection
+- Paths and directories
 
-3. **Validation**
-   - Monitored every epoch
-   - Best model saved based on validation loss
+## 📈 Monitoring
 
-4. **Evaluation**
-   - MAE, RMSE, MAPE, R² metrics
-   - Prediction uncertainty analysis
-   - Per-machine performance breakdown
+Training logs show:
+- Epoch progress with tqdm
+- Training and validation loss
+- All evaluation metrics
+- Learning rate changes
+- Early stopping status
+- Best model checkpoints
 
-### Output Files
-
-After training, you'll get:
-- `best_tft_model.pth` - Trained model weights
-- `prediction_results.png` - Visualization plots
-- `maintenance_report.csv` - Machine recommendations
-
----
-
-## 🔮 Inference
-
-### Real-Time Prediction
+## 🧪 Inference Example
 
 ```python
-from inference import PredictiveMaintenanceInference
-import pandas as pd
+# Load models
+tft_model = load_model('checkpoints/tft_best.pth')
+health_model = load_model('checkpoints/health_best.pth')
+maint_model = load_model('checkpoints/maintenance_best.pth')
 
-# Initialize
-inference = PredictiveMaintenanceInference('best_tft_model.pth')
-
-# Load recent data (last 24+ hours per machine)
-data = pd.read_csv('recent_sensor_data.csv')
-
-# Predict for single machine
-result = inference.predict_single_machine(data, 'M01')
-
-print(f"""
-Machine: {result['machine_id']}
-RUL: {result['predicted_rul_days']:.1f} days
-Status: {result['health_status']}
-Confidence: [{result['confidence_interval']['lower']:.1f}, 
-             {result['confidence_interval']['upper']:.1f}] hours
-Next Maintenance: {result['next_maintenance_date']}
-Recommendation: {result['recommendation']}
-""")
+# Make predictions
+rul = tft_model(static, time_varying)
+health = health_model(features)
+maintenance = maint_model(features)
 ```
 
-### Batch Prediction
+## ⚠️ Important Notes
 
-```python
-# Predict for all machines
-predictions = inference.predict_all_machines(data)
+1. **NO MAPE**: Not used due to division by zero issues when RUL≈0
+2. **Time-based Split**: NEVER use random split for time series
+3. **Scaling**: ALWAYS fit scalers only on training data
+4. **Leakage**: machine_failure column dropped after RUL computation
+5. **Device**: Auto-detects CUDA/MPS/CPU at runtime
 
-# Generate summary report
-summary = inference.generate_summary_report(predictions)
+## 📝 Citation
 
-print(f"Critical machines: {summary['critical_count']}")
-print(f"Warning machines: {summary['warning_count']}")
-print(f"Healthy machines: {summary['good_count']}")
-
-# Export to JSON
-inference.export_predictions(predictions, 'predictions.json')
-```
-
-### Prediction Output Format
-
-```json
-{
-  "machine_id": "M01",
-  "timestamp": "2025-01-15T10:30:00",
-  "predicted_rul_hours": 85.2,
-  "predicted_rul_days": 3.55,
-  "confidence_interval": {
-    "lower": 72.1,
-    "median": 85.2,
-    "upper": 98.3
-  },
-  "health_status": "Warning",
-  "urgency_score": 49.3,
-  "next_maintenance_date": "2025-01-18T23:42:00",
-  "recommendation": "Schedule maintenance within 4 days",
-  "current_metrics": {
-    "vibration": 0.385,
-    "temperature": 58.9,
-    "power_consumption": 2.63
-  }
+```bibtex
+@software{predictive_maintenance_2026,
+  title={Predictive Maintenance Automation System},
+  author={Claude},
+  year={2026},
+  description={End-to-end PyTorch implementation with TFT for RUL prediction}
 }
 ```
 
----
-
-## 🧠 Model Details
-
-### Architecture Specifications
-
-```python
-Input: (batch_size, sequence_length=24, features=62)
-       
-Variable Selection Network:
-  - Linear(128 → 128) + Dropout + ReLU
-  - Linear(128 → 62) + Softmax
-  - Output: Feature importance weights
-
-Machine Embedding:
-  - Embedding(5 machines, 32 dims)
-  
-LSTM:
-  - 2 layers, 128 hidden units
-  - Dropout=0.1 between layers
-  
-Multi-Head Attention:
-  - 4 attention heads
-  - 128-dimensional embeddings
-  
-Feed-Forward:
-  - Linear(128 → 512) + GELU + Dropout
-  - Linear(512 → 128) + Dropout
-  
-Output Heads:
-  - Main: Linear(128 → 64 → 1)
-  - Quantile 10%: Linear(128 → 1)
-  - Quantile 50%: Linear(128 → 1)
-  - Quantile 90%: Linear(128 → 1)
-
-Total Parameters: ~180K (trainable)
-```
-
-### Loss Functions
-
-1. **MSE Loss**: For main prediction accuracy
-   ```python
-   L_mse = mean((y_pred - y_true)²)
-   ```
-
-2. **Quantile Loss**: For uncertainty estimation
-   ```python
-   L_quantile = Σ max((τ-1)(y-ŷ_τ), τ(y-ŷ_τ))
-   where τ ∈ {0.1, 0.5, 0.9}
-   ```
-
-3. **Combined Loss**:
-   ```python
-   L_total = L_mse + 0.1 × L_quantile
-   ```
-
-### Feature Engineering
-
-Automatically generated features:
-- **Temperature diff**: Process - Ambient
-- **Power efficiency**: Power / RPM
-- **Torque efficiency**: Torque / Current
-- **Vibration-RPM interaction**: Vibration × RPM
-- **Rolling statistics**: Mean/Std over 3h, 6h, 12h windows
-- **Temporal features**: Hour, day, week, weekend indicator
-
----
-
-## ⚡ Performance Optimization
-
-### Mac MPS Optimization
-
-The code automatically optimizes for Mac hardware:
-
-```python
-# Automatic device selection
-if torch.backends.mps.is_available():
-    device = torch.device("mps")  # Use Metal
-elif torch.cuda.is_available():
-    device = torch.device("cuda")  # Use NVIDIA
-else:
-    device = torch.device("cpu")   # Fallback
-```
-
-### Memory Management
-
-```python
-# Optimized DataLoader settings
-num_workers = 0  # MPS works best with single worker
-pin_memory = False  # Not needed for MPS
-```
-
-### Training Speed Benchmarks
-
-On MacBook Pro M3:
-- **Data preprocessing**: ~2-3 seconds per 10K samples
-- **Training speed**: ~50-60 samples/second
-- **Inference**: ~200-300 samples/second
-- **Memory usage**: ~1-2 GB for typical datasets
-
-### Optimization Tips
-
-1. **Batch Size**: Start with 32, increase if memory allows
-2. **Gradient Clipping**: Prevents exploding gradients (max_norm=1.0)
-3. **Learning Rate**: 0.001 with ReduceLROnPlateau scheduler
-4. **Early Stopping**: Saves time and prevents overfitting
-
----
-
-## 📈 Results
-
-### Expected Performance
-
-With typical industrial sensor data:
-
-| Metric | Target | Typical Range |
-|--------|--------|---------------|
-| MAE | <10 hours | 8-12 hours |
-| RMSE | <15 hours | 12-18 hours |
-| MAPE | <8% | 6-10% |
-| R² | >0.85 | 0.80-0.90 |
-
-### Health Status Thresholds
-
-| Status | RUL Range | Action |
-|--------|-----------|--------|
-| 🟢 Good | >120 hours | Normal operation |
-| 🟡 Warning | 60-120 hours | Schedule maintenance |
-| 🔴 Critical | <60 hours | Immediate action |
-
-### Visualization Examples
-
-The system generates:
-1. **Predictions vs Actual**: Scatter plot showing model accuracy
-2. **Residual Plot**: Error distribution across predictions
-3. **Error Histogram**: Distribution of prediction errors
-4. **Uncertainty vs Error**: Relationship between confidence and accuracy
-
----
-
-## 🔧 Customization
-
-### Adding New Features
-
-1. Edit `DataPreprocessor.preprocess()`:
-```python
-# Add your custom feature
-df['my_feature'] = df['column1'] / df['column2']
-
-# Add to feature list
-self.feature_columns.append('my_feature')
-```
-
-2. Retrain model with new features
-
-### Adjusting RUL Calculation
-
-Edit `_calculate_rul()` method:
-```python
-def _calculate_rul(self, df):
-    # Your custom RUL calculation logic
-    df['rul'] = your_calculation(df)
-    return df
-```
-
-### Custom Health Thresholds
-
-```python
-def calculate_health_status(rul):
-    if rul > YOUR_THRESHOLD_1:
-        return "Good"
-    elif rul > YOUR_THRESHOLD_2:
-        return "Warning"
-    else:
-        return "Critical"
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **"MPS backend not available"**
-   - Solution: Update to Python 3.8+ and PyTorch 2.0+
-   - Verify: `python -c "import torch; print(torch.backends.mps.is_available())"`
-
-2. **"Insufficient data for prediction"**
-   - Need at least 24 hours of historical data per machine
-   - Check your timestamp column is properly formatted
-
-3. **High memory usage**
-   - Reduce batch_size in training
-   - Reduce sequence_length if possible
-   - Use fewer rolling window features
-
-4. **Poor prediction accuracy**
-   - Increase training data (more history)
-   - Try different hyperparameters
-   - Check for data quality issues
-   - Verify RUL calculation logic matches your domain
-
-### Debug Mode
-
-Enable verbose logging:
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
-```
-
----
-
-## 📚 References
-
-1. **Temporal Fusion Transformers**: Lim et al., 2020
-   - Paper: "Temporal Fusion Transformers for Interpretable Multi-horizon Time Series Forecasting"
-
-2. **Quantile Regression**: Koenker & Bassett, 1978
-   - For uncertainty quantification
-
-3. **Attention Mechanisms**: Vaswani et al., 2017
-   - "Attention Is All You Need"
-
----
-
-## 📝 License
-
-This project is provided as-is for educational and commercial use.
-
----
-
-## 🤝 Contributing
-
-To extend this system:
-1. Add new feature engineering in `DataPreprocessor`
-2. Modify model architecture in `TemporalFusionTransformer`
-3. Implement custom loss functions for your domain
-4. Add domain-specific evaluation metrics
-
----
-
 ## 📧 Support
 
-For issues:
-1. Check the troubleshooting section
-2. Verify your data format matches requirements
-3. Ensure all dependencies are installed correctly
+For issues or questions:
+- Check config.py for hyperparameter tuning
+- Review training logs in console output
+- Inspect saved checkpoints in checkpoints/
 
 ---
 
-## 🎯 Next Steps
-
-1. **Train on your data**: Start with the quick start guide
-2. **Evaluate performance**: Review metrics and visualizations
-3. **Deploy for inference**: Use the inference script for real-time predictions
-4. **Iterate**: Tune hyperparameters and features based on results
-
----
-
-**Happy Predicting! 🚀**
+Built with ❤️ using PyTorch and advanced deep learning techniques.
