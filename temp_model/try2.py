@@ -33,7 +33,7 @@ else:
 # 2️⃣ LOAD DATA
 # ============================================================
 
-DATA_PATH = "Predictive Maintenance Synthetic Data.csv"
+DATA_PATH = "Predictive_Maintenance_Synthetic_Data.csv"
 df = pd.read_csv(DATA_PATH)
 
 TARGET_COL = "machine_failure"
