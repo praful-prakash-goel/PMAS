@@ -33,7 +33,7 @@ else:
 # 2️⃣ LOAD DATA
 # ============================================================
 
-DATA_PATH = "Predictive_Maintenance_Synthetic_Data.csv"
+DATA_PATH = "Predictive Maintenance Synthetic Data.csv"
 df = pd.read_csv(DATA_PATH)
 
 TARGET_COL = "machine_failure"
@@ -250,10 +250,49 @@ print("==============================\n")
 # 1️⃣5️⃣ PLOT HEALTH TREND
 # ============================================================
 
+import os
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Create folder for results
+os.makedirs("results", exist_ok=True)
+
+# Align failure flags with sequence offset
+failure_flags = df["machine_failure"].values[SEQ_LEN:]
+
 plt.figure(figsize=(12,6))
-plt.plot(health_trend)
-plt.title("Smoothed Machine Health Index Over Time")
-plt.xlabel("Time")
-plt.ylabel("Health Index (0-1)")
+plt.plot(recon_errors, label="Reconstruction Error", linewidth=1)
+
+# Mark failure points
+failure_indices = np.where(failure_flags == 1)[0]
+plt.scatter(failure_indices, 
+            recon_errors[failure_indices],
+            color="red",
+            s=20,
+            label="Failures")
+
+plt.title("Reconstruction Error vs Failures")
+plt.xlabel("Time Index")
+plt.ylabel("Reconstruction Error")
+plt.legend()
 plt.grid(True)
-plt.show()
+
+plt.savefig("results/error_vs_failures.png", dpi=300, bbox_inches="tight")
+plt.close()
+
+healthy_errors = recon_errors[failure_flags == 0]
+failure_errors = recon_errors[failure_flags == 1]
+
+plt.figure(figsize=(10,6))
+
+plt.hist(healthy_errors, bins=50, alpha=0.6, label="Healthy")
+plt.hist(failure_errors, bins=50, alpha=0.6, label="Failure")
+
+plt.title("Reconstruction Error Distribution")
+plt.xlabel("Reconstruction Error")
+plt.ylabel("Frequency")
+plt.legend()
+plt.grid(True)
+
+plt.savefig("results/error_distribution.png", dpi=300, bbox_inches="tight")
+plt.close()
