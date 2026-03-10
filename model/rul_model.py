@@ -80,7 +80,10 @@ def compute_rul(group):
     return group
 
 df = df.groupby("machine_id", group_keys=False).apply(compute_rul)
-df = df.reset_index(drop=True)
+df = df.reset_index()
+
+if "machine_id" not in df.columns:
+    df = df.rename(columns={"level_0": "machine_id"})
 
 # ─────────────────────────────────────────
 # FEATURE ENGINEERING
