@@ -20,10 +20,15 @@ warnings.filterwarnings("ignore")
 # ─────────────────────────────────────────
 # DEVICE (CUDA)
 # ─────────────────────────────────────────
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print("\nUsing device:", device)
-if device.type == "cuda":
-    print("GPU:", torch.cuda.get_device_name(0))
+if torch.backends.mps.is_available():
+    device = torch.device("mps")
+    print("Using Apple Silicon MPS")
+elif torch.cuda.is_available():
+    device = torch.device("cuda")
+    print("Using CUDA")
+else:
+    device = torch.device("cpu")
+    print("Using CPU")
 
 # ─────────────────────────────────────────
 # CONFIG
@@ -47,92 +52,6 @@ FEATURES = [
 ]
 
 # ─────────────────────────────────────────
-# LOAD DATA
-# ─────────────────────────────────────────
-print(f"Loading data from: {DATA_PATH}")
-df = pd.read_csv(DATA_PATH, parse_dates=["timestamp"])
-df = df.sort_values(["machine_id", "timestamp"]).reset_index(drop=True)
-
-print("\nRows:", len(df))
-print("Machines:", df["machine_id"].nunique())
-
-# ─────────────────────────────────────────
-# COMPUTE RUL
-# ─────────────────────────────────────────
-def compute_rul(group):
-    group = group.reset_index(drop=True)
-    fail_pos = group.index[group["machine_failure"] == 1].tolist()
-    n = len(group)
-    rul_vals = np.zeros(n, dtype=float)
-
-    if len(fail_pos) == 0:
-        rul_vals = np.arange(n, 0, -1, dtype=float)
-    else:
-        prev = 0
-        for fp in fail_pos:
-            for i in range(prev, fp + 1):
-                rul_vals[i] = fp - i
-            prev = fp + 1
-        for i in range(fail_pos[-1] + 1, n):
-            rul_vals[i] = n - i
-
-    group["RUL"] = np.clip(rul_vals, 0, RUL_CAP)
-    return group
-
-df = df.groupby("machine_id", group_keys=False).apply(compute_rul)
-df = df.reset_index()
-
-if "machine_id" not in df.columns:
-    df = df.rename(columns={"level_0": "machine_id"})
-
-# ─────────────────────────────────────────
-# FEATURE ENGINEERING
-# ─────────────────────────────────────────
-df["maintenance_enc"] = (df["last_maintenance_Type"] == "corrective").astype(float)
-FEATURES_FINAL = FEATURES + ["maintenance_enc"]
-
-feat_scaler = MinMaxScaler()
-rul_scaler = MinMaxScaler()
-
-df[FEATURES_FINAL] = feat_scaler.fit_transform(df[FEATURES_FINAL])
-df["RUL_scaled"] = rul_scaler.fit_transform(df[["RUL"]])
-
-joblib.dump(feat_scaler, f"{SAVE_PATH}/feat_scaler.pkl")
-joblib.dump(rul_scaler, f"{SAVE_PATH}/rul_scaler.pkl")
-
-# ─────────────────────────────────────────
-# SEQUENCE BUILDER
-# ─────────────────────────────────────────
-def make_sequences(data, seq_len):
-    X, y = [], []
-    for i in range(len(data) - seq_len):
-        X.append(data[i:i+seq_len, :-1])
-        y.append(data[i+seq_len-1, -1])
-    return np.array(X, dtype=np.float32), np.array(y, dtype=np.float32)
-
-X_train_all, y_train_all = [], []
-X_test_all, y_test_all = [], []
-
-for machine, grp in df.groupby("machine_id"):
-    arr = grp[FEATURES_FINAL + ["RUL_scaled"]].values
-    split = int(len(arr) * (1 - TEST_SPLIT))
-    train_arr = arr[:split]
-    test_arr = arr[split:]
-
-    Xtr, ytr = make_sequences(train_arr, SEQ_LEN)
-    Xte, yte = make_sequences(test_arr, SEQ_LEN)
-
-    X_train_all.append(Xtr)
-    y_train_all.append(ytr)
-    X_test_all.append(Xte)
-    y_test_all.append(yte)
-
-X_train = np.concatenate(X_train_all)
-y_train = np.concatenate(y_train_all)
-X_test = np.concatenate(X_test_all)
-y_test = np.concatenate(y_test_all)
-
-# ─────────────────────────────────────────
 # DATASET
 # ─────────────────────────────────────────
 class RULDataset(Dataset):
@@ -145,20 +64,6 @@ class RULDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
-
-train_loader = DataLoader(
-    RULDataset(X_train, y_train),
-    batch_size=BATCH_SIZE,
-    shuffle=True,
-    pin_memory=True
-)
-
-test_loader = DataLoader(
-    RULDataset(X_test, y_test),
-    batch_size=BATCH_SIZE,
-    shuffle=False,
-    pin_memory=True
-)
 
 # ─────────────────────────────────────────
 # MODEL
@@ -183,90 +88,196 @@ class BiLSTM_RUL(nn.Module):
         x = self.relu(self.fc2(x))
         return self.out(x)
 
-model = BiLSTM_RUL(X_train.shape[2]).to(device)
+def compute_rul(group):
+    group = group.reset_index(drop=True)
+    fail_pos = group.index[group["machine_failure"] == 1].tolist()
+    n = len(group)
+    rul_vals = np.zeros(n, dtype=float)
+
+    if len(fail_pos) == 0:
+        rul_vals = np.arange(n, 0, -1, dtype=float)
+    else:
+        prev = 0
+        for fp in fail_pos:
+            for i in range(prev, fp + 1):
+                rul_vals[i] = fp - i
+            prev = fp + 1
+        for i in range(fail_pos[-1] + 1, n):
+            rul_vals[i] = n - i
+
+    group["RUL"] = np.clip(rul_vals, 0, RUL_CAP)
+    return group
 
 # ─────────────────────────────────────────
-# TRAINING SETUP
+# SEQUENCE BUILDER
 # ─────────────────────────────────────────
-criterion = nn.HuberLoss(delta=0.2)
-optimizer = torch.optim.Adam(model.parameters(), lr=LR)
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS)
-scaler = torch.cuda.amp.GradScaler()
+def make_sequences(data, seq_len):
+    X, y = [], []
+    for i in range(len(data) - seq_len):
+        X.append(data[i:i+seq_len, :-1])
+        y.append(data[i+seq_len-1, -1])
+    return np.array(X, dtype=np.float32), np.array(y, dtype=np.float32)
 
-# ─────────────────────────────────────────
-# TRAIN LOOP (FIXED TQDM)
-# ─────────────────────────────────────────
-best_loss = float('inf')
+def load_data(feat_scaler, rul_scaler, data_path=DATA_PATH):
+    print(f"Loading data from: {data_path}")
+    df = pd.read_csv(data_path, parse_dates=["timestamp"])
+    df = df.sort_values(["machine_id", "timestamp"]).reset_index(drop=True)
 
-for epoch in range(EPOCHS):
-    model.train()
-    total_loss = 0
+    print("\nRows:", len(df))
+    print("Machines:", df["machine_id"].nunique())
 
-    pbar = tqdm(total=len(train_loader), desc=f"Epoch {epoch+1}/{EPOCHS}")
+    df = df.groupby("machine_id", group_keys=False).apply(compute_rul)
+    df = df.reset_index()
 
-    for Xb, yb in train_loader:
-        Xb = Xb.to(device, non_blocking=True)
-        yb = yb.to(device, non_blocking=True).unsqueeze(1)
+    if "machine_id" not in df.columns:
+        df = df.rename(columns={"level_0": "machine_id"})
 
-        optimizer.zero_grad()
+    # ─────────────────────────────────────────
+    # FEATURE ENGINEERING
+    # ─────────────────────────────────────────
+    df["maintenance_enc"] = (df["last_maintenance_Type"] == "corrective").astype(float)
+    FEATURES_FINAL = FEATURES + ["maintenance_enc"]
 
-        with torch.cuda.amp.autocast():
-            preds = model(Xb)
-            loss = criterion(preds, yb)
+    df[FEATURES_FINAL] = feat_scaler.fit_transform(df[FEATURES_FINAL])
+    df["RUL_scaled"] = rul_scaler.fit_transform(df[["RUL"]])
 
-        scaler.scale(loss).backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        scaler.step(optimizer)
-        scaler.update()
+    joblib.dump(feat_scaler, f"{SAVE_PATH}/feat_scaler.pkl")
+    joblib.dump(rul_scaler, f"{SAVE_PATH}/rul_scaler.pkl")
+    
+    config = {
+        "seq_len": SEQ_LEN,
+        "features": FEATURES_FINAL,
+        "rul_cap": RUL_CAP,
+        "input_dim": len(FEATURES_FINAL)
+    }
 
-        total_loss += loss.item()
-        pbar.update(1)
+    joblib.dump(config, f"{SAVE_PATH}/model_config.pkl")
 
-    pbar.close()
+    X_train_all, y_train_all = [], []
+    X_test_all, y_test_all = [], []
 
-    epoch_loss = total_loss / len(train_loader)
-    if epoch_loss < best_loss:
-        best_loss = epoch_loss
-        torch.save(model.state_dict(), f"{SAVE_PATH}/rul_model.pth")
-        print(f">> Best model saved at epoch: {epoch} - loss: {epoch_loss}")
-        
-    scheduler.step()
-    print(f"Epoch {epoch+1} Loss: {total_loss/len(train_loader):.4f}")
+    for machine, grp in df.groupby("machine_id"):
+        arr = grp[FEATURES_FINAL + ["RUL_scaled"]].values
+        split = int(len(arr) * (1 - TEST_SPLIT))
+        train_arr = arr[:split]
+        test_arr = arr[split:]
+
+        Xtr, ytr = make_sequences(train_arr, SEQ_LEN)
+        Xte, yte = make_sequences(test_arr, SEQ_LEN)
+
+        X_train_all.append(Xtr)
+        y_train_all.append(ytr)
+        X_test_all.append(Xte)
+        y_test_all.append(yte)
+
+    X_train = np.concatenate(X_train_all)
+    y_train = np.concatenate(y_train_all)
+    X_test = np.concatenate(X_test_all)
+    y_test = np.concatenate(y_test_all)
+    
+    return X_train, y_train, X_test, y_test
+
+def train_model(X_train, y_train):
+    train_loader = DataLoader(
+        RULDataset(X_train, y_train),
+        batch_size=BATCH_SIZE,
+        shuffle=True,
+        pin_memory=True
+    )
+
+    model = BiLSTM_RUL(X_train.shape[2]).to(device)
+
+    # ─────────────────────────────────────────
+    # TRAINING SETUP
+    # ─────────────────────────────────────────
+    criterion = nn.HuberLoss(delta=0.2)
+    optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS)
+    scaler = torch.amp.GradScaler()
+
+    # ─────────────────────────────────────────
+    # TRAIN LOOP (FIXED TQDM)
+    # ─────────────────────────────────────────
+    best_loss = float('inf')
+
+    for epoch in range(EPOCHS):
+        model.train()
+        total_loss = 0
+
+        pbar = tqdm(total=len(train_loader), desc=f"Epoch {epoch+1}/{EPOCHS}")
+
+        for Xb, yb in train_loader:
+            Xb = Xb.to(device, non_blocking=True)
+            yb = yb.to(device, non_blocking=True).unsqueeze(1)
+
+            optimizer.zero_grad()
+
+            with torch.amp.autocast(device_type="cuda"):
+                preds = model(Xb)
+                loss = criterion(preds, yb)
+
+            scaler.scale(loss).backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            scaler.step(optimizer)
+            scaler.update()
+
+            total_loss += loss.item()
+            pbar.update(1)
+
+        pbar.close()
+
+        epoch_loss = total_loss / len(train_loader)
+        if epoch_loss < best_loss:
+            best_loss = epoch_loss
+            torch.save(model.state_dict(), f"{SAVE_PATH}/rul_model.pth")
+            print(f">> Best model saved at epoch: {epoch} - loss: {epoch_loss}")
+            
+        scheduler.step()
+        print(f"Epoch {epoch+1} Loss: {total_loss/len(train_loader):.4f}")
+    
+    return model
 
 # ─────────────────────────────────────────
 # EVALUATION
 # ─────────────────────────────────────────
-model.eval()
-preds_all = []
-true_all = []
+def evaluate_model(model, X_test, y_test, rul_scaler):
+    test_loader = DataLoader(
+        RULDataset(X_test, y_test),
+        batch_size=BATCH_SIZE,
+        shuffle=False,
+        pin_memory=True
+    )
+    
+    model.eval()
+    preds_all = []
+    true_all = []
 
-with torch.no_grad():
-    for Xb, yb in test_loader:
-        Xb = Xb.to(device)
-        preds = model(Xb)
-        preds_all.append(preds.cpu().numpy())
-        true_all.append(yb.numpy())
+    with torch.no_grad():
+        for Xb, yb in test_loader:
+            Xb = Xb.to(device)
+            preds = model(Xb)
+            preds_all.append(preds.cpu().numpy())
+            true_all.append(yb.numpy())
 
-y_pred_scaled = np.concatenate(preds_all).flatten()
-y_true_scaled = np.concatenate(true_all).flatten()
+    y_pred_scaled = np.concatenate(preds_all).flatten()
+    y_true_scaled = np.concatenate(true_all).flatten()
 
-y_pred = rul_scaler.inverse_transform(y_pred_scaled.reshape(-1,1)).flatten()
-y_true = rul_scaler.inverse_transform(y_true_scaled.reshape(-1,1)).flatten()
+    y_pred = rul_scaler.inverse_transform(y_pred_scaled.reshape(-1,1)).flatten()
+    y_true = rul_scaler.inverse_transform(y_true_scaled.reshape(-1,1)).flatten()
 
-mae = mean_absolute_error(y_true, y_pred)
-rmse = np.sqrt(mean_squared_error(y_true, y_pred))
-r2 = r2_score(y_true, y_pred)
+    mae = mean_absolute_error(y_true, y_pred)
+    rmse = np.sqrt(mean_squared_error(y_true, y_pred))
+    r2 = r2_score(y_true, y_pred)
 
-print("\n==== RESULTS ====")
-print("MAE :", round(mae,2), "hours")
-print("RMSE:", round(rmse,2), "hours")
-print("R2  :", round(r2,4))
+    print("\n==== RESULTS ====")
+    print("MAE :", round(mae,2), "hours")
+    print("RMSE:", round(rmse,2), "hours")
+    print("R2  :", round(r2,4))
 
-config = {
-    "seq_len": SEQ_LEN,
-    "features": FEATURES_FINAL,
-    "rul_cap": RUL_CAP,
-    "input_dim": len(FEATURES_FINAL)
-}
-
-joblib.dump(config, f"{SAVE_PATH}/model_config.pkl")
+if __name__ == '__main__':
+    feat_scaler = MinMaxScaler()
+    rul_scaler = MinMaxScaler()
+    
+    X_train, y_train, X_test, y_test = load_data(feat_scaler, rul_scaler, data_path=DATA_PATH)
+    model = train_model(X_train, y_train)
+    evaluate_model(model, X_test, y_test, rul_scaler)
