@@ -64,7 +64,7 @@ def register_technician(
         email=request.email,
         password=hashed_password,
         org_name=request.org_name,
-        role=request.role
+        role=models.UserRole.TECHNICIAN
     )
     
     db.add(new_user)
@@ -143,7 +143,7 @@ def add_machine(
         installation_date=request.installation_date,
         last_service_date=request.installation_date,
         location=request.location,
-        org_name=request.org_name
+        org_name=user.org_name
     )
     
     db.add(machine)

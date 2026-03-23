@@ -7,7 +7,6 @@ class UserCreate(BaseModel):
     name: str
     email: str
     password: str
-    role: UserRole
     org_name: str
     
 class UserLogin(BaseModel):
@@ -49,7 +48,6 @@ class MachineCreate(BaseModel):
     machine_type: str
     installation_date: date
     location: str
-    org_name: str
     
     @field_validator("installation_date", mode="before")
     @classmethod
