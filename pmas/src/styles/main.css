@@ -1,0 +1,21 @@
+:root {
+  --charleston-green: #2A2829;
+  --dark-sky-blue: #97B4DE;
+  --blue-primary: #263A99;
+  --alabaster: #F0EBE5;
+  --pastel-gray: #DCD0BE;
+
+  --text-light: #ffffff;
+  --text-dark: #2A2829;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #1a1a1f;
+  font-family: 'Lexend', 'Geist Mono';
+}
