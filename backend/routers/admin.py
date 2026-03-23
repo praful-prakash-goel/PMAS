@@ -260,6 +260,9 @@ def assign_ticket(
         record = record_lookup[id]
         record.is_assigned = True
     
+    ticket = db.query(models.Ticket).get(ticket_id)
+    ticket.status = models.TicketStatus.ASSIGNED if technician_ids else models.TicketStatus.OPEN
+    
     db.commit()
     
     return {"msg": "Ticket assigned succesfully"}

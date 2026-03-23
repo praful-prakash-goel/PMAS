@@ -20,6 +20,7 @@ class Severity(enum.Enum):
 
 class TicketStatus(enum.Enum):
     OPEN = "OPEN"
+    ASSIGNED = "ASSIGNED"
     IN_PROGRESS = "IN PROGRESS"
     RESOLVED = "RESOLVED"
 

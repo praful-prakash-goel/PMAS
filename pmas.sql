@@ -122,7 +122,7 @@ CREATE TABLE `ticket_technicians` (
 
 LOCK TABLES `ticket_technicians` WRITE;
 /*!40000 ALTER TABLE `ticket_technicians` DISABLE KEYS */;
-INSERT INTO `ticket_technicians` VALUES (1,2,1),(1,3,1);
+INSERT INTO `ticket_technicians` VALUES (1,2,1),(1,3,0);
 /*!40000 ALTER TABLE `ticket_technicians` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -137,7 +137,7 @@ CREATE TABLE `tickets` (
   `ticket_id` int NOT NULL AUTO_INCREMENT,
   `alert_id` int DEFAULT NULL,
   `priority` enum('LOW','MEDIUM','HIGH') DEFAULT NULL,
-  `status` enum('OPEN','IN PROGRESS','RESOLVED') DEFAULT NULL,
+  `STATUS` enum('OPEN','ASSIGNED','IN PROGRESS','RESOLVED') DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`ticket_id`),
   KEY `alert_id` (`alert_id`),
@@ -151,7 +151,7 @@ CREATE TABLE `tickets` (
 
 LOCK TABLES `tickets` WRITE;
 /*!40000 ALTER TABLE `tickets` DISABLE KEYS */;
-INSERT INTO `tickets` VALUES (1,1,'HIGH','OPEN','2026-03-22 11:10:24'),(2,1,'HIGH','OPEN','2026-03-22 11:11:32'),(3,2,'LOW','OPEN','2026-03-22 11:11:44');
+INSERT INTO `tickets` VALUES (1,1,'HIGH','ASSIGNED','2026-03-22 11:10:24'),(2,1,'HIGH','OPEN','2026-03-22 11:11:32'),(3,2,'LOW','OPEN','2026-03-22 11:11:44');
 /*!40000 ALTER TABLE `tickets` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -193,4 +193,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-23 19:15:52
+-- Dump completed on 2026-03-23 19:45:08
