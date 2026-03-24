@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.database import engine
 from backend import models
-from backend.routers import admin, authentication
+from backend.routers import admin, authentication, technician
 
 app = FastAPI()
 models.Base.metadata.create_all(bind=engine)
@@ -21,3 +21,4 @@ app.add_middleware(
 
 app.include_router(authentication.router)
 app.include_router(admin.router)
+app.include_router(technician.router)

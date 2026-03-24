@@ -96,7 +96,10 @@ class Ticket(Base):
     ticket_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     alert_id = Column(Integer, ForeignKey("alerts.alert_id", ondelete="CASCADE"))
     priority = Column(Enum(Priority))
-    status = Column(Enum(TicketStatus))
+    status = Column(
+        Enum(TicketStatus, values_callable=lambda obj: [e.value for e in obj]),
+        default=TicketStatus.OPEN
+    )
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # relationships
