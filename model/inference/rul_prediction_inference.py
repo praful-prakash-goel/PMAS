@@ -47,16 +47,14 @@ def predict(model_config, data_path, model_path, feature_path):
     return latest_status
 
 def map_health_status(rul_hours):
-    if rul_hours <= 48:
+    if rul_hours <= 100:
         return "CRITICAL"
-    elif rul_hours <= 150:
-        return "WARNING"
-    elif rul_hours <= 400:
-        return "CAUTION"
+    elif rul_hours <= 350:
+        return "DEGRADING"
     else:
         return "HEALTHY"
 
-def save_inference_report(df_with_preds: pd.DataFrame, output_path: str):
+def save_inference_report(df_with_preds: pd.DataFrame, output_path: str, verbose: int = 0):
     """
     Takes the model output (DataFrame with 'predicted_RUL') 
     and saves the final maintenance report.
@@ -67,7 +65,7 @@ def save_inference_report(df_with_preds: pd.DataFrame, output_path: str):
         "vibration_zscore", "predicted_RUL"
     ]].copy()
 
-    # ename for Clarity
+    # rename for Clarity
     report_df = report_df.rename(columns={"predicted_RUL": "RUL_predicted_hours"})
 
     # Apply Transformations
@@ -90,7 +88,8 @@ def save_inference_report(df_with_preds: pd.DataFrame, output_path: str):
 
     # Save and Return
     report_df.to_csv(output_path, index=False)
-    print(f"\n[SUCCESS] Inference report saved to: {output_path}")
+    if verbose == 1:
+        print(f"\n[SUCCESS] Inference report saved to: {output_path}")
     
     return report_df
     
@@ -102,5 +101,5 @@ if __name__ == '__main__':
     
     model_config = joblib.load(CONFIG_PATH)
     summary_df = predict(model_config=model_config, data_path=DATA_PATH, model_path=MODEL_PATH, feature_path=FEATURE_PATH)
-    save_inference_report(summary_df, output_path=OUTPUT_PATH)
+    save_inference_report(summary_df, output_path=OUTPUT_PATH, verbose=1)
     

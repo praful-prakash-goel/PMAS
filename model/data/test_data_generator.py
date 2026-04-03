@@ -1,118 +1,110 @@
 import numpy as np
 import pandas as pd
 import os
+import json
+from datetime import datetime
 
-np.random.seed(123)
-
-NUM_MACHINES = 6
-HOURS = 300
-DATES = pd.date_range(start="2025-01-01", periods=HOURS, freq="h")
-
+# Configuration
 DATA_DIR = os.path.dirname(os.path.abspath(__file__))
+CSV_PATH = os.path.join(DATA_DIR, "inference_test_data.csv")
+STATE_PATH = os.path.join(DATA_DIR, "machine_state.json")
 
-records = []
+# Probability Factors (tuned for 5-second intervals)
+P_HEALTHY_TO_DEGRADING = 0.01  # 1% chance (~10 mins expected time)
+P_DEGRADING_TO_CRITICAL = 0.04 # 4% chance (~1.5 mins expected time)
 
-machine_states = {
-    "M01": "healthy",
-    "M02": "healthy",
-    "M03": "degrading",
-    "M04": "degrading",
-    "M05": "critical",
-    "M06": "failing"
-}
-
-cycle_length = 2285  # same as training
-
-for machine_id, state in machine_states.items():
-
-    base_vibration = np.random.uniform(0.2, 0.4)
-    base_temp = np.random.uniform(55, 65)
-
-    maint_timer = 0
-
-    # 🔥 KEY FIX: force cycle position
-    if state == "healthy":
-        total_operating_hours = np.random.randint(0, 200)
-
-    elif state == "degrading":
-        total_operating_hours = np.random.randint(900, 1400)
-
-    elif state == "critical":
-        total_operating_hours = np.random.randint(1800, 2100)
-
-    else:  # failing
-        total_operating_hours = np.random.randint(2100, 2280)
-
-    # 🔥 initial degradation still matters
-    if state == "healthy":
-        degradation = 0.02
-    elif state == "degrading":
-        degradation = 0.2
-    elif state == "critical":
-        degradation = 0.7
+def generate_data(verbose: int = 0):
+    # Initialize or Load State
+    if not os.path.exists(STATE_PATH):
+        machine_state = {
+            "M01": {"state": "healthy", "degradation": 0.02, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(0, 200), "maint_timer": 0},
+            "M02": {"state": "healthy", "degradation": 0.02, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(0, 200), "maint_timer": 0},
+            "M03": {"state": "degrading", "degradation": 0.20, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(900, 1400), "maint_timer": 0},
+            "M04": {"state": "degrading", "degradation": 0.20, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(900, 1400), "maint_timer": 0},
+            "M05": {"state": "critical", "degradation": 0.70, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(1800, 2100), "maint_timer": 0},
+            "M06": {"state": "critical", "degradation": 0.90, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(2100, 2280), "maint_timer": 0}
+        }
     else:
-        degradation = 0.9
+        with open(STATE_PATH, 'r') as f:
+            machine_state = json.load(f)
 
-    for ts in DATES:
-        total_operating_hours += 1
-        maint_timer += 1
+    current_timestamp = pd.Timestamp.now().round('s')
+    records = []
 
-        # degradation speed
+    for machine_id, data in machine_state.items():
+        state = data["state"]
+        degradation = data["degradation"]
+        
+        # 1. Evaluate State Transitions based on Probability
+        if state == "healthy" and np.random.rand() < P_HEALTHY_TO_DEGRADING:
+            state = "degrading"
+            degradation = max(degradation, 0.2)
+        elif state == "degrading" and np.random.rand() < P_DEGRADING_TO_CRITICAL:
+            state = "critical"
+            degradation = max(degradation, 0.7)
+
+        # 2. Apply continuous wear and tear (Cap at 1.25 to prevent extreme math anomalies)
         if state == "healthy":
-            wear_step = np.random.uniform(1e-4, 2e-4)
+            wear_step = np.random.uniform(1e-4, 5e-4)
         elif state == "degrading":
-            wear_step = np.random.uniform(2e-4, 4e-4)
-        else:
-            wear_step = np.random.uniform(5e-4, 9e-4)
+            wear_step = np.random.uniform(1e-3, 3e-3)
+        else: # critical
+            # Accelerated wear so a critical machine hits failure (1.1) within a reasonable timeframe
+            wear_step = np.random.uniform(1e-2, 3e-2) 
 
-        degradation += wear_step
+        if degradation < 1.25:
+            degradation += wear_step
+            
+        data["op_hours"] += (5 / 3600)
+        data["maint_timer"] += (5 / 3600)
 
-        # sensor signals (keep yours but slightly stronger separation)
-        vibration = base_vibration * (1 + (3 + 5 * degradation) * degradation) + np.random.normal(0, 0.02)
-        process_temp = base_temp * (1 + (2 + 3 * degradation) * degradation) + np.random.normal(0, 1.0)
-
+        # 3. Generate Sensor Signals
+        vibration = data["base_vib"] * (1 + (3 + 5 * degradation) * degradation) + np.random.normal(0, 0.02)
+        process_temp = data["base_temp"] * (1 + (2 + 3 * degradation) * degradation) + np.random.normal(0, 1.0)
+        
         machine_failure = 0
         maint_type = "None"
 
-        # failure only for failing machine
-        if state == "failing" and degradation > 1.1:
+        # 4. Check for catastrophic failure trigger (Requires Critical State AND High Degradation)
+        if state == "critical" and degradation > 1.1:
             machine_failure = 1
             maint_type = "corrective"
-            degradation = 0.8
-            maint_timer = 0
 
         torque = np.random.uniform(40, 70) * (1 + 0.2 * degradation)
         rpm = np.random.uniform(1200, 1800) * (1 - 0.25 * degradation)
         current = (torque * rpm) / 9000 + np.random.normal(0, 0.2)
 
+        # Append to current run records
         records.append([
-            ts,
-            machine_id,
-            process_temp,
-            np.random.uniform(20, 30),
-            vibration,
-            torque,
-            rpm,
-            current,
-            total_operating_hours,
-            maint_timer,
-            maint_type,
-            machine_failure,
-            np.random.uniform(0, 0.2),
-            current * 0.415
+            current_timestamp, machine_id, process_temp, np.random.uniform(20, 30),
+            vibration, torque, rpm, current, data["op_hours"],
+            data["maint_timer"], maint_type, machine_failure,
+            np.random.uniform(0, 0.2), current * 0.415
         ])
 
-columns = [
-    "timestamp", "machine_id", "process_temperature", "air_temperature",
-    "vibration", "torque", "rpm", "current", "operating_hours",
-    "time_since_last_maintenance", "last_maintenance_Type", "machine_failure",
-    "idle_duration", "power_consumption"
-]
+        # Save updated variables back to state dictionary
+        data["state"] = state
+        data["degradation"] = degradation
 
-df = pd.DataFrame(records, columns=columns)
+    # Save updated state to JSON for the next run
+    with open(STATE_PATH, 'w') as f:
+        json.dump(machine_state, f, indent=4)
 
-save_path = os.path.join(DATA_DIR, "inference_test_data.csv")
-df.to_csv(save_path, index=False)
+    # Create DataFrame
+    columns = [
+        "timestamp", "machine_id", "process_temperature", "air_temperature",
+        "vibration", "torque", "rpm", "current", "operating_hours",
+        "time_since_last_maintenance", "last_maintenance_Type", "machine_failure",
+        "idle_duration", "power_consumption"
+    ]
+    df = pd.DataFrame(records, columns=columns)
 
-print("Saved:", save_path)
-print("Failures:", df["machine_failure"].sum())
+    # Append to CSV
+    file_exists = os.path.exists(CSV_PATH)
+    df.to_csv(CSV_PATH, mode='a', header=not file_exists, index=False)
+
+    if verbose == 1:
+        print(f"[{current_timestamp}] Data appended to {CSV_PATH}. Failures in this batch: {df['machine_failure'].sum()}")
+        
+if __name__ == '__main__':
+    generate_data(verbose=1)

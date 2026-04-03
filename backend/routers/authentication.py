@@ -18,15 +18,9 @@ def login(
     
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid Credentials")
-    
-    # print(f"DEBUG: Email: {request.email}")
-    # print(f"DEBUG: Plain password length: {len(request.password)}")
-    # print(f"DEBUG: Hashed password from DB starts with: {user.password[:10]}")
 
     if not Hash.verify(request.password, user.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
-
-    # return {"access_token": "test", "token_type": "bearer", "user": {"id": 1, "email": "test@test.com", "role": "admin"}}
 
     access_token = auth_token.create_access_token(
         data={
