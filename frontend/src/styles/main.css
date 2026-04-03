@@ -9,13 +9,5 @@
   --text-dark: #2A2829;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  background-color: #1a1a1f;
-  font-family: 'Lexend', 'Geist Mono';
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; background: #0f0f0d; color: #fff; font-family: 'Poppins', sans-serif; }

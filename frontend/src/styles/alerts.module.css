@@ -1,0 +1,221 @@
+.page {
+  padding: 30px 36px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideIn { from { opacity: 0; transform: translateX(110%); } to { opacity: 1; transform: translateX(0); } }
+
+.topBar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pageTitle {
+  font-size: 26px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+
+.pageSubtitle {
+  font-size: 13px;
+  color: #6b6d66;
+}
+
+.select {
+  appearance: none;
+  background: #161614;
+  border: 1px solid rgba(192, 194, 184, 0.12);
+  border-radius: 12px;
+  color: #C0C2B8;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 34px 9px 13px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  align-self: center;
+}
+
+.select:hover, .select:focus {
+  border-color: rgba(213, 255, 64, 0.25);
+  color: #ffffff;
+}
+
+/* toast */
+.toast {
+  background: #161614;
+  border: 1px solid rgba(0, 204, 102, 0.25);
+  border-radius: 14px;
+  padding: 13px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #44dd88;
+  margin-bottom: 20px;
+  animation: slideIn 0.4s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.empty {
+  color: #6b6d66;
+  font-size: 13px;
+}
+
+/* card */
+.card {
+  background: #161614;
+  border: 1px solid rgba(192, 194, 184, 0.12);
+  border-radius: 18px;
+  padding: 20px;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s;
+  background: radial-gradient(circle at 50% 0%, rgba(213,255,64,.04), transparent 65%);
+  pointer-events: none;
+}
+
+.card:hover::after { opacity: 1; }
+.card:hover { transform: translateY(-4px); box-shadow: 0 14px 44px rgba(0,0,0,.45); }
+
+.card.critical { border-color: rgba(255, 68, 68, 0.3); }
+.card.warning  { border-color: rgba(255, 170, 0, 0.25); }
+
+/* acknowledged cards are dimmed */
+.card.acked {
+  opacity: 0.55;
+  border-color: rgba(192, 194, 184, 0.08);
+}
+
+.card.acked:hover { opacity: 0.75; }
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.alertId {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #D5FF40;
+}
+
+.machineId {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.ticketRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ticketId {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #C0C2B8;
+}
+
+.viewTicketBtn {
+  background: none;
+  border: none;
+  color: #D5FF40;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.2s;
+}
+
+.viewTicketBtn:hover { opacity: 0.75; }
+
+.timestamp {
+  font-size: 12px;
+  color: #6b6d66;
+}
+
+.cardFooter {
+  padding-top: 12px;
+  border-top: 1px solid rgba(192, 194, 184, 0.08);
+  margin-top: 4px;
+}
+
+.acknowledgeBtn {
+  width: 100%;
+  padding: 10px;
+  background: rgba(213, 255, 64, 0.08);
+  border: 1px solid rgba(213, 255, 64, 0.2);
+  border-radius: 12px;
+  color: #D5FF40;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.acknowledgeBtn:hover {
+  background: rgba(213, 255, 64, 0.14);
+  transform: scale(1.02);
+}
+
+.ackedText {
+  font-size: 12px;
+  color: #6b6d66;
+  font-weight: 500;
+}
+
+/* badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.bdot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.criticalBadge { background: rgba(255,68,68,.12); color: #ff6868; border: 1px solid rgba(255,68,68,.22); }
+.warningBadge  { background: rgba(255,170,0,.12); color: #ffcc44; border: 1px solid rgba(255,170,0,.22); }

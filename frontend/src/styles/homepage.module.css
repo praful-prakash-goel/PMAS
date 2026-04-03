@@ -1,0 +1,195 @@
+.page {
+  padding: 30px 36px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* header */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+
+.sub {
+  font-size: 13px;
+  color: #6b6d66;
+}
+
+/* stat strip */
+.statStrip {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+}
+
+.statItem {
+  background: #161614;
+  border: 1px solid rgba(192, 194, 184, 0.12);
+  border-top: 2px solid transparent;
+  border-radius: 18px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.statItem:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.35);
+  border-color: rgba(192, 194, 184, 0.2);
+}
+
+.statNum {
+  font-size: 34px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -1.5px;
+  line-height: 1;
+}
+
+.statLbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b6d66;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/* main grid */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  flex: 1;
+  min-height: 0;
+}
+
+.card {
+  background: #161614;
+  border: 1px solid rgba(192, 194, 184, 0.12);
+  border-radius: 18px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow: hidden;
+  transition: border-color 0.25s;
+}
+
+.card:hover {
+  border-color: rgba(192, 194, 184, 0.22);
+}
+
+.cardTitle {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #6b6d66;
+  margin: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.list::-webkit-scrollbar { width: 4px; }
+.list::-webkit-scrollbar-track { background: transparent; }
+.list::-webkit-scrollbar-thumb { background: #252522; border-radius: 2px; }
+
+.listRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: #1e1e1b;
+  gap: 10px;
+  transition: background 0.18s;
+}
+
+.listRow:hover {
+  background: #252522;
+}
+
+.listLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.listRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.listId {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #D5FF40;
+}
+
+.listName {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.listSub {
+  font-size: 11px;
+  color: #6b6d66;
+  white-space: nowrap;
+}
+
+/* badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.criticalBadge  { background: rgba(255, 68, 68, 0.12);  color: #ff6868; border: 1px solid rgba(255, 68, 68, 0.22); }
+.warningBadge   { background: rgba(255, 170, 0, 0.12);  color: #ffcc44; border: 1px solid rgba(255, 170, 0, 0.22); }
+.healthyBadge   { background: rgba(0, 204, 102, 0.12);  color: #33dd88; border: 1px solid rgba(0, 204, 102, 0.22); }
+.highBadge      { background: rgba(255, 100, 50, 0.12); color: #ff9966; border: 1px solid rgba(255, 100, 50, 0.22); }
+.mediumBadge    { background: rgba(100,180,255, 0.12);  color: #88ccff; border: 1px solid rgba(100,180,255, 0.22); }
+.lowBadge       { background: rgba(192,194,184, 0.1);   color: #C0C2B8; border: 1px solid rgba(192,194,184, 0.12); }
+
+.openStatus       { background: rgba(255, 68, 68, 0.1);  color: #ff8888; border: 1px solid rgba(255, 68, 68, 0.16); }
+.inprogressStatus { background: rgba(255, 170, 0, 0.1);  color: #ffcc44; border: 1px solid rgba(255, 170, 0, 0.16); }
+.resolvedStatus   { background: rgba(0, 204, 102, 0.1);  color: #44dd88; border: 1px solid rgba(0, 204, 102, 0.16); }
+.activeBadge      { background: rgba(213, 255, 64, 0.1); color: #D5FF40; border: 1px solid rgba(213, 255, 64, 0.2); }
+.inactiveBadge    { background: #252522; color: #6b6d66; border: 1px solid rgba(192,194,184,0.12); }

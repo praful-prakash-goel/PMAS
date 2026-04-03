@@ -19,7 +19,7 @@ def update_admin_info(
     db: Session = Depends(get_db),
     user: models.User = Depends(role_required(['ADMIN']))
 ):
-    updated_info = request.dict(exclude_unset=True)
+    updated_info = request.model_dump(exclude_unset=True)
     if "old_password" not in updated_info:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Old password is required to update information.")
     

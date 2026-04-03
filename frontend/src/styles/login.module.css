@@ -1,0 +1,127 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.page {
+  min-height: 100vh;
+  background: #0f0f0d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Poppins', sans-serif;
+}
+
+.logo {
+  font-size: 40px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+  margin-bottom: 1%;
+}
+
+.logo span {
+  color: #D5FF40;
+}
+
+.loginBox {
+  background: #161614;
+  border: 1px solid rgba(192, 194, 184, 0.12);
+  border-radius: 18px;
+  padding: 2.25rem 2rem;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.5px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inputGroup label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b6d66;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.inputField {
+  background: #1e1e1b;
+  border: 1px solid rgba(192, 194, 184, 0.12);
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  padding: 11px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.inputField:focus {
+  border-color: rgba(213, 255, 64, 0.4);
+}
+
+.inputField option {
+  background: #1e1e1b;
+  color: #ffffff;
+}
+
+.continueBtn {
+  margin-top: 0.25rem;
+  width: 100%;
+  padding: 11px;
+  background: #D5FF40;
+  color: #0f0f0d;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+
+.continueBtn:hover {
+  background: #c4ef30;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 22px rgba(213, 255, 64, 0.35);
+}
+
+.continueBtn:active {
+  transform: translateY(0);
+}
+
+.signupText {
+  text-align: center;
+  font-size: 12px;
+  color: #6b6d66;
+  margin-top: 0.25rem;
+}
+
+.signupLink {
+  color: #D5FF40;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.signupLink:hover {
+  text-decoration: underline;
+}

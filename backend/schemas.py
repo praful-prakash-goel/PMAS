@@ -48,33 +48,11 @@ class MachineCreate(BaseModel):
     machine_type: str
     installation_date: date
     location: str
-    
-    @field_validator("installation_date", mode="before")
-    @classmethod
-    def parse_dd_mm_yyyy(cls, value):
-        clean_value = value.strip()
-        if isinstance(value, str):
-            try:
-                return datetime.strptime(clean_value, "%d-%m-%Y").date()
-            except:
-                raise ValueError(f"Invalid format {value}. Format must be DD-MM-YYYY (e.g., 21-03-2026)")
-        return value
 
 class MachineUpdate(BaseModel):
     health_status: Optional[HealthStatus] = None
     location: Optional[str] = None
     last_service_date: Optional[date] = None
-    
-    @field_validator("last_service_date", mode="before")
-    @classmethod
-    def parse_dd_mm_yyyy(cls, value):
-        clean_value = value.strip()
-        if isinstance(value, str):
-            try:
-                return datetime.strptime(clean_value, "%d-%m-%Y").date()
-            except:
-                raise ValueError(f"Invalid format {value}. Expected DD-MM-YYYY (e.g., 21-03-2026)")
-        return value
 
 class MachineResponse(BaseModel):
     machine_id: str

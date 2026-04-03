@@ -1,8 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from urllib.parse import quote_plus
 
-SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:pgoel2010@localhost:3306/pmas"
+password = "nick@1234"
+encoded_password = quote_plus(password)
+
+SQLALCHEMY_DATABASE_URL = f"mysql+pymysql://root:{encoded_password}@localhost:3306/pmas"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 

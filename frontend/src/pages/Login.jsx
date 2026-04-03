@@ -1,37 +1,54 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import loginStyles from "../styles/login.module.css";
-import loginLogo from "../assets/senseact_logo.png";
 
 const LoginPage = () => {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("");
 
   const handleLogin = async () => {
-    if (!email || !password || !role) {
+    // Removed 'role' check since we're fetching it from backend
+    if (!email || !password) {
       alert("Please fill in all fields.");
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:5000/login", {
+      const response = await fetch("http://localhost:8000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, user_type: role }),
+        body: JSON.stringify({ email, password }), // Sending only email and password
       });
 
       const data = await response.json();
-      console.log(data);
 
       if (response.ok) {
         alert("Login successful!");
-        const userId = data.user_id;
-        navigate(`/homepage?user=${role}&user_id=${userId}`);
+        
+        // Extract data from the "user" object returned by your Python code
+        // const userRole = data.user.role; 
+        
+        // instead of passing user_role as url parameters, user_role will be
+        // extracted from token stored in local storage for security
+        const token = data.access_token;
+        //console.log(token)
+
+        // Store token for future authenticated requests
+        localStorage.setItem("token", token);
+        localStorage.setItem("userRole", data.user.role);
+        localStorage.setItem("userId", data.user.id);
+        console.log(data.user.name);
+        localStorage.setItem("userName", data.user.name);
+        localStorage.setItem("userOrg", data.user.org_name);
+        localStorage.setItem("userEmail", data.user.email);
+
+        // Navigate using the role fetched from the database
+        navigate(`/homepage`);
       } else {
-        alert(data.message || "Login failed.");
+        // FastAPI returns errors in a 'detail' field
+        alert(data.detail || "Login failed.");
       }
     } catch (err) {
       console.error("Login error:", err);
@@ -41,8 +58,9 @@ const LoginPage = () => {
 
   return (
     <main className={loginStyles.page}>
-      <img src={loginLogo} alt="Senseact Logo" className={loginStyles.loginLogo} />
-
+      <div className={loginStyles.logo} onClick={() => navigate(`/homepage${location.search}`)}>
+        SENSE<span>ACT</span>
+      </div>
       <div className={loginStyles.loginBox}>
         <h2 className={loginStyles.title}>Welcome Back</h2>
 
@@ -68,7 +86,7 @@ const LoginPage = () => {
           />
         </div>
 
-        <div className={loginStyles.inputGroup}>
+        {/* <div className={loginStyles.inputGroup}>
           <label>Role*</label>
           <select
             className={loginStyles.inputField}
@@ -79,7 +97,7 @@ const LoginPage = () => {
             <option value="administrator">Administrator</option>
             <option value="technician">Technician</option>
           </select>
-        </div>
+        </div> */}
 
         <button className={loginStyles.continueBtn} onClick={handleLogin}>
           Continue

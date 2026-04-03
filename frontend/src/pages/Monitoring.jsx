@@ -22,6 +22,11 @@ const thresholds = {
   load:      { warning: 80, critical: 90  },
 };
 
+// const daysSince = (dateStr) => {
+//   const diff = Date.now() - new Date(dateStr).getTime();
+//   return Math.floor(diff / (1000 * 60 * 60 * 24)) + " days";
+// };
+
 const getStatus = (key, value) => {
   if (value >= thresholds[key].critical) return "critical";
   if (value >= thresholds[key].warning)  return "warning";
@@ -71,7 +76,9 @@ const Monitoring = () => {
       <div className={monStyles.topBar}>
         <div>
           <h2 className={monStyles.pageTitle}>Monitoring</h2>
-          <p className={monStyles.subtitle}>Live sensor data — updates every 2 seconds</p>
+          <p className={monStyles.subtitle}>
+            Live sensor data — <span className={monStyles.liveDot} /> updates every 2 seconds
+          </p>        
         </div>
         <select className={monStyles.select} value={selectedId} onChange={handleMachineChange}>
           {machines.map((m) => (

@@ -1,0 +1,79 @@
+.topbar {
+  height: 62px;
+  min-height: 62px;
+  background: #161614;
+  border-bottom: 1px solid rgba(192, 194, 184, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 26px;
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+}
+
+.logo span {
+  color: #D5FF40;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.livePill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #D5FF40;
+  font-weight: 600;
+  background: rgba(213, 255, 64, 0.07);
+  border: 1px solid rgba(213, 255, 64, 0.15);
+  padding: 5px 12px;
+  border-radius: 100px;
+}
+
+.liveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #D5FF40;
+  animation: dotPulse 1.8s infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.7); opacity: 0.4; }
+}
+
+.notifWrap {
+  position: relative;
+  cursor: pointer;
+}
+
+.notifBell {
+  font-size: 20px;
+}
+
+.notifCount {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  background: #D5FF40;
+  color: #0f0f0d;
+  font-size: 9px;
+  font-weight: 800;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
