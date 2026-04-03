@@ -24,5 +24,3 @@ app.add_middleware(
 app.include_router(authentication.router)
 app.include_router(admin.router)
 app.include_router(technician.router)
-
-# print(Hash.bcrypt("Almighty@123"))

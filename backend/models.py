@@ -47,7 +47,6 @@ class User(Base):
         passive_deletes=True, 
         cascade="all, delete-orphan" 
     )
-    # assigned_tickets = relationship("Ticket", back_populates="assignee")
 
 class Technician(Base):
     __tablename__ = "technicians"
@@ -104,7 +103,6 @@ class Ticket(Base):
 
     # relationships
     alert = relationship("Alert", back_populates="tickets")
-    # assignee = relationship("User", back_populates="assigned_tickets")
     technicians = relationship("TicketTechnician", back_populates="ticket")
     
     @property
