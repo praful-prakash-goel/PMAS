@@ -12,7 +12,7 @@ CONFIG_PATH = os.path.join(MODEL_DIR ,"saved_models", "model_config.pkl")
 OUTPUT_PATH = os.path.join(MODEL_DIR, "results", "inference_results.csv")
 FEATURE_PATH = os.path.join(MODEL_DIR, "saved_models", "feature_cols.pkl")
 
-def predict(model_config, data_path, model_path, feature_path):
+def predict(model_config, data_path: str = DATA_PATH, model_path: str = MODEL_PATH, feature_path: str = FEATURE_PATH):
     if not os.path.exists(model_path):
         print(f"Error: Model not found at {model_path}")
         return
@@ -54,7 +54,7 @@ def map_health_status(rul_hours):
     else:
         return "HEALTHY"
 
-def save_inference_report(df_with_preds: pd.DataFrame, output_path: str, verbose: int = 0):
+def save_inference_report(df_with_preds: pd.DataFrame, output_path: str = OUTPUT_PATH, verbose: int = 0):
     """
     Takes the model output (DataFrame with 'predicted_RUL') 
     and saves the final maintenance report.
