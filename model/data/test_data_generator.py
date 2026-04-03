@@ -18,11 +18,11 @@ def generate_data(verbose: int = 0):
     if not os.path.exists(STATE_PATH):
         machine_state = {
             "M01": {"state": "healthy", "degradation": 0.02, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(0, 200), "maint_timer": 0},
-            "M02": {"state": "healthy", "degradation": 0.02, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(0, 200), "maint_timer": 0},
-            "M03": {"state": "degrading", "degradation": 0.20, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(900, 1400), "maint_timer": 0},
-            "M04": {"state": "degrading", "degradation": 0.20, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(900, 1400), "maint_timer": 0},
-            "M05": {"state": "critical", "degradation": 0.70, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(1800, 2100), "maint_timer": 0},
-            "M06": {"state": "critical", "degradation": 0.90, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(2100, 2280), "maint_timer": 0}
+            "M02": {"state": "healthy", "degradation": 0.03, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(0, 200), "maint_timer": 0},
+            "M03": {"state": "healthy", "degradation": 0.04, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(0, 200), "maint_timer": 0},
+            "M04": {"state": "healthy", "degradation": 0.05, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(0, 200), "maint_timer": 0},
+            "M05": {"state": "degrading", "degradation": 0.30, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(400, 800), "maint_timer": 0},
+            "M06": {"state": "critical", "degradation": 0.70, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(1200, 1600), "maint_timer": 0}
         }
     else:
         with open(STATE_PATH, 'r') as f:
