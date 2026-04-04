@@ -28,6 +28,7 @@ CREATE TABLE `alerts` (
   `severity` enum('LOW','MEDIUM','HIGH') DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `acknowledged` tinyint(1) DEFAULT '0',
+  `Closed` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`alert_id`),
   KEY `machine_id` (`machine_id`),
   CONSTRAINT `alerts_ibfk_1` FOREIGN KEY (`machine_id`) REFERENCES `machines` (`machine_id`) ON DELETE CASCADE
@@ -40,7 +41,7 @@ CREATE TABLE `alerts` (
 
 LOCK TABLES `alerts` WRITE;
 /*!40000 ALTER TABLE `alerts` DISABLE KEYS */;
-INSERT INTO `alerts` VALUES (1,'M01','HIGH','2026-03-22 16:05:07',1),(2,'M02','LOW','2026-03-22 16:05:14',0);
+INSERT INTO `alerts` VALUES (1,'M01','HIGH','2026-04-04 00:58:32',0,0),(2,'M02','MEDIUM','2026-04-04 00:58:32',0,0);
 /*!40000 ALTER TABLE `alerts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -69,7 +70,7 @@ CREATE TABLE `machines` (
 
 LOCK TABLES `machines` WRITE;
 /*!40000 ALTER TABLE `machines` DISABLE KEYS */;
-INSERT INTO `machines` VALUES ('M01','CNC Mill','HEALTHY','2026-03-21','2026-03-22','Warehouse A','Nexus'),('M02','Drill','HEALTHY','2026-03-22','2026-03-22','Production Line A','Nexus');
+INSERT INTO `machines` VALUES ('M01','CNC Mill','HEALTHY','2026-03-21','2026-03-22','Warehouse A','Nexus'),('M02','Drill','HEALTHY','2026-03-22','2026-03-22','Production Line A','Nexus'),('M03','Lathe','HEALTHY','2026-04-04','2026-04-04','WareHouse A','Nexus'),('M04','Drill','HEALTHY','2026-04-04','2026-04-04','WareHouse B','Nexus'),('M05','CNC Mill','HEALTHY','2026-04-04','2026-04-04','Production Line B','Nexus');
 /*!40000 ALTER TABLE `machines` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -122,7 +123,6 @@ CREATE TABLE `ticket_technicians` (
 
 LOCK TABLES `ticket_technicians` WRITE;
 /*!40000 ALTER TABLE `ticket_technicians` DISABLE KEYS */;
-INSERT INTO `ticket_technicians` VALUES (1,2,1),(1,3,0);
 /*!40000 ALTER TABLE `ticket_technicians` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -151,7 +151,6 @@ CREATE TABLE `tickets` (
 
 LOCK TABLES `tickets` WRITE;
 /*!40000 ALTER TABLE `tickets` DISABLE KEYS */;
-INSERT INTO `tickets` VALUES (1,1,'HIGH','ASSIGNED','2026-03-22 11:10:24'),(2,1,'HIGH','OPEN','2026-03-22 11:11:32'),(3,2,'LOW','OPEN','2026-03-22 11:11:44');
 /*!40000 ALTER TABLE `tickets` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -180,7 +179,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Almighty','almighty@gmail.com','$2b$12$UeAwCdDmBGC2D5hW1pivr.FSz13a1uOCcPcQoWhjMvVDqSe0vT7Qe','ADMIN','Nexus'),(2,'john doe','johndoe@gmail.com','$2b$12$zFyJ/JRbAQGFG8rqFzGjte7.Lm9SZQGXt3GUVVMRk24j94oAddHWi','TECHNICIAN','Nexus'),(3,'jane doe','janedoe@gmail.com','$2b$12$8kKwcGElYX4KvKbgwvzEAuC8juu29g0/tfzjlw2NajlluFqT/4xaO','TECHNICIAN','Nexus');
+INSERT INTO `users` VALUES (1,'Almighty','almighty@gmail.com','$2b$12$UeAwCdDmBGC2D5hW1pivr.FSz13a1uOCcPcQoWhjMvVDqSe0vT7Qe','ADMIN','Nexus'),(2,'John Doe','johndoe@gmail.com','$2b$12$zFyJ/JRbAQGFG8rqFzGjte7.Lm9SZQGXt3GUVVMRk24j94oAddHWi','TECHNICIAN','Nexus'),(3,'jane doe','janedoe@gmail.com','$2b$12$8kKwcGElYX4KvKbgwvzEAuC8juu29g0/tfzjlw2NajlluFqT/4xaO','TECHNICIAN','Nexus');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -193,4 +192,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-23 19:45:08
+-- Dump completed on 2026-04-04  6:33:28
