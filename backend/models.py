@@ -84,6 +84,7 @@ class Alert(Base):
     severity = Column(Enum(Severity))
     created_at = Column(DateTime, default=datetime.utcnow)
     acknowledged = Column(Boolean, default=False)
+    closed = Column(Boolean, default=False)
 
     # relationships
     machine = relationship("Machine", back_populates="alerts")
