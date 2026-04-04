@@ -3,6 +3,8 @@ import pandas as pd
 import os
 import json
 from datetime import datetime
+from backend.models import Machine
+from backend.database import SessionLocal
 
 # Configuration
 DATA_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -13,20 +15,65 @@ STATE_PATH = os.path.join(DATA_DIR, "machine_state.json")
 P_HEALTHY_TO_DEGRADING = 0.01  # 1% chance (~10 mins expected time)
 P_DEGRADING_TO_CRITICAL = 0.04 # 4% chance (~1.5 mins expected time)
 
+def get_machine_ids():
+    db = SessionLocal()
+    try:
+        machines = db.query(Machine).all()
+        return [m.machine_id for m in machines]
+    finally:
+        db.close()
+    
 def generate_data(verbose: int = 0):
+    machine_ids = get_machine_ids()
+    
     # Initialize or Load State
     if not os.path.exists(STATE_PATH):
-        machine_state = {
-            "M01": {"state": "healthy", "degradation": 0.02, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(0, 200), "maint_timer": 0},
-            "M02": {"state": "healthy", "degradation": 0.03, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(0, 200), "maint_timer": 0},
-            "M03": {"state": "healthy", "degradation": 0.04, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(0, 200), "maint_timer": 0},
-            "M04": {"state": "healthy", "degradation": 0.05, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(0, 200), "maint_timer": 0},
-            "M05": {"state": "degrading", "degradation": 0.30, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(400, 800), "maint_timer": 0},
-            "M06": {"state": "critical", "degradation": 0.70, "base_vib": np.random.uniform(0.2, 0.4), "base_temp": np.random.uniform(55, 65), "op_hours": np.random.randint(1200, 1600), "maint_timer": 0}
-        }
+        machine_state = {}
+
+        for i, machine_id in enumerate(machine_ids):
+            if i == 0:
+                state = "critical"
+                degradation = 0.7
+                op_hours = np.random.randint(1200, 1600)
+
+            elif i == 1:
+                state = "degrading"
+                degradation = 0.3
+                op_hours = np.random.randint(400, 800)
+
+            else:
+                state = "healthy"
+                degradation = np.random.uniform(0.02, 0.05)
+                op_hours = np.random.randint(0, 200)
+
+            machine_state[machine_id] = {
+                "state": state,
+                "degradation": degradation,
+                "base_vib": np.random.uniform(0.2, 0.4),
+                "base_temp": np.random.uniform(55, 65),
+                "op_hours": op_hours,
+                "maint_timer": 0
+            }
     else:
         with open(STATE_PATH, 'r') as f:
             machine_state = json.load(f)
+
+    # Add new machines
+    for machine_id in machine_ids:
+        if machine_id not in machine_state:
+            machine_state[machine_id] = {
+                "state": "healthy",
+                "degradation": np.random.uniform(0.02, 0.05),
+                "base_vib": np.random.uniform(0.2, 0.4),
+                "base_temp": np.random.uniform(55, 65),
+                "op_hours": np.random.randint(0, 100),
+                "maint_timer": 0
+            }
+
+    # Remove deleted machines
+    for machine_id in list(machine_state.keys()):
+        if machine_id not in machine_ids:
+            del machine_state[machine_id]
 
     current_timestamp = pd.Timestamp.now().round('s')
     records = []
@@ -101,7 +148,9 @@ def generate_data(verbose: int = 0):
 
     # Append to CSV
     file_exists = os.path.exists(CSV_PATH)
-    df.to_csv(CSV_PATH, mode='a', header=not file_exists, index=False)
+    temp_path = CSV_PATH + ".tmp"
+    df.to_csv(temp_path, index=False)
+    os.replace(temp_path, CSV_PATH)
 
     if verbose == 1:
         print(f"[{current_timestamp}] Data appended to {CSV_PATH}. Failures in this batch: {df['machine_failure'].sum()}")
