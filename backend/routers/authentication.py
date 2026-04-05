@@ -17,7 +17,7 @@ def login(
     user = db.query(models.User).filter(models.User.email == request.email).first()
     
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid Credentials")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User Does Not Exist")
 
     if not Hash.verify(request.password, user.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")

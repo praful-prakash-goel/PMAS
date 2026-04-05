@@ -58,8 +58,16 @@ def get_all_technicians(
 def register_technician(
     request: schemas.UserCreate,
     db: Session = Depends(get_db),
-    user: models.User = Depends(role_required(['ADMIN']))
-):
+    user: models.User = Depends(role_required(['ADMIN']))):
+    
+    existing_user = db.query(models.User).filter(models.User.email == request.email).first()
+    
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this email already exists"
+        )
+
     hashed_password = Hash.bcrypt(request.password)
     
     new_user = models.User(
