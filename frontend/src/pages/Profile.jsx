@@ -1,128 +1,228 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import styles from "../styles/profile.module.css";
 
 const BASE_URL = "http://localhost:8000";
 
 const Profile = () => {
   const token = localStorage.getItem("token");
+  const storedRole = localStorage.getItem("userRole"); 
   
-  // Initialize from storage to stay "accurate" to the logged-in user
   const [prof, setProf] = useState({
-    Name: localStorage.getItem("userName") || "User",
-    Email: localStorage.getItem("userEmail") || "",
-    OrgName: localStorage.getItem("userOrg") || "",
-    Role: localStorage.getItem("userRole") || "",
-    userId: localStorage.getItem("userId"),
+    name: localStorage.getItem("userName") || "User",
+    email: localStorage.getItem("userEmail") || "",
+    orgName: localStorage.getItem("userOrg") || "Nexus",
+    role: storedRole || "ADMIN",
   });
 
-  const [stats, setStats] = useState({ tickets: 0, machines: 0 });
   const [form, setForm] = useState({ ...prof });
   const [editing, setEditing] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwords, setPasswords] = useState({ current: "", newPass: "", confirm: "" });
+  const [showPassModal, setShowPassModal] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  
+  const [verifyPass, setVerifyPass] = useState("");
+  const [passData, setPassData] = useState({ old: "", new: "", confirm: "" });
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/users/stats/${prof.userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setStats({ tickets: data.assigned_tickets, machines: data.managed_machines });
-        }
-      } catch{
-        console.error("Stats fetch failed");
-      }
-    };
-    if (token) fetchStats();
-  }, [token, prof.userId]);
+  const handleVerifyAndEdit = async () => {
+  try {
+    const rolePath = prof.role.toLowerCase();
+    // We send a request to a verify endpoint (or use your update-info with no changes)
+    const res = await fetch(`${BASE_URL}/${rolePath}/update-info`, {
+      method: "PATCH",
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      // We send the password but don't change any data yet
+      body: JSON.stringify({
+        old_password: verifyPass 
+      }),
+    });
 
-  const save = async () => {
+    if (res.ok) {
+      setEditing(true);
+      setShowVerifyModal(false);
+      // Keep verifyPass for the final save, or clear it if backend doesn't need it twice
+    } else {
+      const err = await res.json();
+      alert(err.detail || "Incorrect password. Access denied.");
+      setVerifyPass("");
+    }
+  } catch {
+    alert("System error during verification.");
+  }
+};
+
+  const handleUpdate = async () => {
     try {
-      const res = await fetch(`${BASE_URL}/technician/update-info`, {
+      const rolePath = prof.role.toLowerCase();
+      const res = await fetch(`${BASE_URL}/${rolePath}/update-info`, {
         method: "PATCH",
         headers: { 
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: form.Name,
-          email: form.Email,
-          old_password: passwords.current // Backend requires this for verification
+          name: form.name,
+          email: form.email,
+          old_password: verifyPass 
         }),
       });
 
       if (res.ok) {
         setProf({ ...form });
         setEditing(false);
-        localStorage.setItem("userName", form.Name);
-        localStorage.setItem("userEmail", form.Email);
+        setVerifyPass("");
+        localStorage.setItem("userName", form.name);
+        localStorage.setItem("userEmail", form.email);
+        // alert("Profile updated!");
+      } else {
+        const err = await res.json();
+        alert(err.detail || "Update failed.");
       }
-    } catch{
-      alert("Update failed.");
+    } catch {
+      alert("Server error during update.");
     }
   };
 
-  const initials = prof.Name.split(" ").map((n) => n[0]).join("");
+  const handlePasswordChange = async () => {
+    if (passData.new !== passData.confirm) return alert("New passwords do not match.");
+    
+    try {
+      const rolePath = prof.role.toLowerCase();
+      const res = await fetch(`${BASE_URL}/${rolePath}/update-info`, {
+        method: "PATCH",
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          old_password: passData.old,
+          new_password: passData.new
+        }),
+      });
+
+      if (res.ok) {
+        alert("Password updated successfully!");
+        setShowPassModal(false);
+        setPassData({ old: "", new: "", confirm: "" });
+      } else {
+        const err = await res.json();
+        alert(err.detail || "Current password incorrect.");
+      }
+    } catch {
+      alert("Server error.");
+    }
+  };
+
+  const initials = prof.name.split(" ").map((n) => n[0]).join("");
 
   return (
     <div className={styles.page}>
       <div className={styles.topBar}>
         <div>
-          <div className={styles.pageTitle}>My Profile</div>
-          <div className={styles.pageSubtitle}>Account Management</div>
+          <h2 className={styles.pageTitle}>My Profile</h2>
         </div>
-        <div className={styles.headerActions}>
+      </div>
+
+      <div className={styles.card}>
+        <div className={styles.heroSection}>
+          <div className={styles.avatarLarge}>{initials}</div>
+          <div className={styles.heroText}>
+            <h3>{prof.name}</h3>
+            <span>{prof.role}</span>
+          </div>
+        </div>
+
+        <div className={styles.formGrid}>
+          <div className={styles.inputGroup}>
+            <label>Full Name</label>
+            <input 
+              type="text" 
+              value={editing ? form.name : prof.name} 
+              disabled={!editing}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <label>Email Address</label>
+            <input 
+              type="email" 
+              value={editing ? form.email : prof.email} 
+              disabled={!editing}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <label>Organisation</label>
+            <input type="text" value={prof.orgName} disabled className={styles.disabledInput} />
+          </div>
+        </div>
+
+        <div className={styles.bottomActions}>
           {!editing ? (
-            <button className={styles.editBtn} onClick={() => setEditing(true)}>Edit Profile</button>
+            <div className={styles.buttonRow}>
+              <button className={styles.editBtn} onClick={() => setShowVerifyModal(true)}>Edit Profile</button>
+              <button className={styles.dangerBtn} onClick={() => setShowPassModal(true)}>Change Password</button>
+            </div>
           ) : (
-            <>
-              <button className={styles.cancelBtn} onClick={() => setEditing(false)}>Cancel</button>
-              <button className={styles.saveBtn} onClick={save}>Save Changes</button>
-            </>
+            <div className={styles.buttonRow}>
+              <button className={styles.cancelBtn} onClick={() => { setEditing(false); setVerifyPass(""); }}>Cancel</button>
+              <button className={styles.saveBtn} onClick={handleUpdate}>Save Changes</button>
+            </div>
           )}
         </div>
       </div>
 
-      <div className={styles.hero}>
-        <div className={styles.avatar}>{initials}</div>
-        <div className={styles.heroInfo}>
-          <div className={styles.heroName}>{prof.Name}</div>
-          <div className={styles.heroRole}>{prof.Role} · {prof.OrgName}</div>
-          
-          <div className={styles.heroStats}>
-            <div className={styles.stat}>
-              <div className={styles.statVal}>{stats.tickets}</div>
-              <div className={styles.statLbl}>Tickets Assigned</div>
+      {showVerifyModal && (
+        <div className={styles.overlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h3>Security Check</h3>
+              <button className={styles.closeBtn} onClick={() => setShowVerifyModal(false)}>✕</button>
             </div>
-            <div className={styles.stat}>
-              <div className={styles.statVal}>{stats.machines}</div>
-              <div className={styles.statLbl}>Machines Supervised</div>
+            <p className={styles.modalText}>Enter your password:</p>
+            <div className={styles.inputGroup}>
+              <input 
+                type="password" 
+                placeholder="Password" 
+                value={verifyPass} 
+                onChange={(e) => setVerifyPass(e.target.value)} 
+              />
+            </div>
+            <div className={styles.modalActions}>
+              <button className={styles.saveBtn} onClick={handleVerifyAndEdit}>Verify</button>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <div className={styles.grid}>
-        <div className={styles.card}>
-          <div className={styles.sectionLbl}>Account Details</div>
-          {!editing ? (
-            <>
-              <div className={styles.field}><div className={styles.fieldLbl}>Full Name</div><div className={styles.fieldVal}>{prof.Name}</div></div>
-              <div className={styles.field}><div className={styles.fieldLbl}>Email</div><div className={styles.fieldVal}>{prof.Email}</div></div>
-              <div className={styles.field}><div className={styles.fieldLbl}>Organisation</div><div className={styles.fieldVal}>{prof.OrgName}</div></div>
-            </>
-          ) : (
-            <>
-              <div className={styles.inputGroup}><label>Full Name</label><input type="text" value={form.Name} onChange={(e) => setForm({ ...form, Name: e.target.value })} /></div>
-              <div className={styles.inputGroup}><label>Email Address</label><input type="email" value={form.Email} onChange={(e) => setForm({ ...form, Email: e.target.value })} /></div>
-              <div className={styles.inputGroup}><label>Organisation (Fixed)</label><input type="text" value={prof.OrgName} disabled style={{ backgroundColor: '#f0f0f0' }} /></div>
-            </>
-          )}
-          <button className={styles.dangerBtn} onClick={() => setShowPasswordModal(true)} style={{ marginTop: '20px' }}>Change Password</button>
+      {showPassModal && (
+        <div className={styles.overlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h3>Update Password</h3>
+              <button className={styles.closeBtn} onClick={() => setShowPassModal(false)}>✕</button>
+            </div>
+            <div className={styles.form}>
+              <div className={styles.inputGroup}>
+                <label>Current Password</label>
+                <input type="password" value={passData.old} onChange={(e) => setPassData({...passData, old: e.target.value})} />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>New Password</label>
+                <input type="password" value={passData.new} onChange={(e) => setPassData({...passData, new: e.target.value})} />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>Confirm New Password</label>
+                <input type="password" value={passData.confirm} onChange={(e) => setPassData({...passData, confirm: e.target.value})} />
+              </div>
+            </div>
+            <div className={styles.modalActions}>
+              <button className={styles.saveBtn} onClick={handlePasswordChange}>Change Password</button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

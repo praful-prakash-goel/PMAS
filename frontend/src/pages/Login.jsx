@@ -25,7 +25,7 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Login successful!");
+        // alert("Login successful!");
         
         // Extract data from the "user" object returned by your Python code
         // const userRole = data.user.role; 

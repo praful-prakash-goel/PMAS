@@ -19,7 +19,7 @@ const Technicians = () => {
   const token = localStorage.getItem("token");
 
   const [technicians,  setTechnicians]  = useState([]);
-  const [loading,      setLoading]      = useState(true);
+  // const [loading,      setLoading]      = useState(true);
   const [showModal,    setShowModal]    = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -41,7 +41,7 @@ const Technicians = () => {
       } catch (err) {
         console.error("Fetch error:", err);
       } finally {
-        setLoading(false);
+        // setLoading(false);
       }
     };
     if (token) fetchTechnicians();
@@ -106,7 +106,7 @@ const Technicians = () => {
     }
   };
 
-  if (loading) return <div className={styles.loading}>Loading Technicians...</div>;
+  // if (loading) return <div className={styles.loading}>Loading Technicians...</div>;
 
   return (
     <div className={styles.page}>

@@ -34,7 +34,7 @@ const Machines = () => {
   const isAdmin = role === "ADMIN";
 
   const [machines,       setMachines]       = useState([]);
-  const [loading,        setLoading]        = useState(true);
+  // const [loading,        setLoading]        = useState(true);
   const [locationFilter, setLocationFilter] = useState("all");
   const [statusFilter,   setStatusFilter]   = useState("all");
 
@@ -62,7 +62,7 @@ const Machines = () => {
       } catch (err) {
         console.error("Fetch error:", err);
       } finally {
-        setLoading(false);
+        // setLoading(false);
       }
     };
     if (token) fetchMachines();
@@ -149,7 +149,7 @@ const Machines = () => {
     }
   };
 
-  if (loading) return <div className={styles.loading}>Accessing Machine Registry...</div>;
+  // if (loading) return <div className={styles.loading}>Accessing Machine Registry...</div>;
 
   return (
     <div className={styles.page}>

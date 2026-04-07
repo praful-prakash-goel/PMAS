@@ -45,7 +45,7 @@ const Alerts = () => {
   const isAdmin = userRole === "ADMIN";
 
   const [alerts, setAlerts] = useState([]); // Switched from initialAlerts to empty array for API
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [notifSent, setNotifSent] = useState(null);
 
@@ -65,7 +65,7 @@ const Alerts = () => {
     } catch {
       console.error("Fetch failed. Backend might be down.");
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
@@ -120,7 +120,7 @@ const Alerts = () => {
     return true;
   });
 
-  if (loading) return <div className={styles.loading}>Connecting to alert system...</div>;
+  // if (loading) return <div className={styles.loading}>Connecting to alert system...</div>;
 
   return (
     <div className={styles.page}>

@@ -163,7 +163,7 @@ const Tickets = () => {
       });
       
       if (res.ok) {
-        alert("Applied! Wait for admin to confirm assignment.");
+        alert("Wait for admin to confirm assignment.");
         
         // Update local state immediately so the button shifts to 'Pending Approval'
         setOpenTickets((prev) =>
@@ -210,7 +210,7 @@ const Tickets = () => {
   };
 
   const openAssignModal = (ticket) => {
-    // 1. Identify the list of technicians who hit 'Accept'
+    //Identify the list of technicians who hit 'Accept'
     const applicantsList = ticket.technicians || ticket.accepted_by || [];
 
     if (applicantsList.length > 0) {
@@ -253,7 +253,7 @@ const Tickets = () => {
         body: JSON.stringify(selectedTechIds), 
       });
       if (res.ok) {
-        alert("Assignment successful!");
+        // alert("Assignment successful!");
         setShowAssignModal(false);
         fetchTickets();
       }
@@ -266,17 +266,17 @@ const Tickets = () => {
   const renderTicketCard = (t) => {
     const currentUserId = Number(userId);
 
-    // 1. Check 'accepted_by' array to see if you applied
+    //Check 'accepted_by' array to see if you applied
     const hasApplied = t.accepted_by?.some(
       (tech) => Number(tech.user_id) === currentUserId
     );
 
-    // 2. Check 'assigned_to' array to see if Admin assigned it to you
+    //Check 'assigned_to' array to see if Admin assigned it to you
     const isAssignedToMe = t.assigned_to?.some(
       (tech) => Number(tech.user_id) === currentUserId
     );
 
-    // 3. Logic: If ticket is assigned but NOT to me, hide it from the technician view
+    //Logic: If ticket is assigned but NOT to me, hide it from the technician view
     if (!isAdmin && t.status === "ASSIGNED" && !isAssignedToMe) {
       return null;
     }
@@ -331,7 +331,7 @@ const Tickets = () => {
 
               {/* RESOLVED STATE */}
               {t.status === "RESOLVED" && (
-                <span className={styles.doneText}>✓ Completed</span>
+                <span className={styles.doneText}>Completed</span>
               )}
             </>
           )}
@@ -340,7 +340,7 @@ const Tickets = () => {
     );
   };
 
-  if (loading) return <div className={styles.loading}>Pulling latest tickets...</div>;
+  // if (loading) return <div className={styles.loading}>Pulling latest tickets...</div>;
 
   return (
     <div className={styles.page}>

@@ -76,7 +76,7 @@ const Monitoring = () => {
     return () => clearInterval(interval);
   }, [selectedId, token]);
 
-  /* // Original simulation logic
+  /* // old simulation logic
   useEffect(() => {
     const base = sampleReadings[selectedId];
     const interval = setInterval(() => {
@@ -141,13 +141,11 @@ const Monitoring = () => {
             <div key={s.key} className={monStyles.sensorCard}>
               <div className={monStyles.sensorTop}>
                 <span className={monStyles.sensorLabel}>{s.label}</span>
-                {/* Badges removed per user request */}
               </div>
               <div className={monStyles.sensorValue}>
                 {s.value?.toFixed(1)}{s.unit}
               </div>
               <div className={monStyles.bar}>
-                {/* Defaulting to a neutral blue bar since badges are removed */}
                 <div 
                   className={monStyles.barFill} 
                   style={{ width: `${pct}%`, backgroundColor: '#3b82f6' }} 
@@ -173,10 +171,23 @@ const Monitoring = () => {
 
         <div className={monStyles.card}>
           <h3 className={monStyles.cardTitle}>Remaining Useful Life</h3>
-          {/* RUL is already in days from your inference script */}
-          <div className={monStyles.rulValue}>{readings.rul_days?.toFixed(1)} days</div>
+          
+          {/* RUL DAYS LOGIC */}
+          <div className={monStyles.rulValue}>
+            {(readings.rul_days || readings.rul) < 1 && (readings.rul_days || readings.rul) > 0 
+              ? "< 1" 
+              : (readings.rul_days || readings.rul || 0).toFixed(1)} 
+            <span className={monStyles.unitLabel}> days</span>
+          </div>
+
           <p className={monStyles.rulLabel}>
-            Next maintenance scheduled in <strong>{readings.next_maintenance_days?.toFixed(1)} days</strong>
+            Next maintenance scheduled in: 
+            <strong> 
+              {(readings.next_maintenance_days || readings.next_maint) < 1 && (readings.next_maintenance_days || readings.next_maint) > 0
+                ? " < 1" 
+                : ` ${(readings.next_maintenance_days || readings.next_maint || 0).toFixed(1)}`} 
+              days
+            </strong>
           </p>
         </div>
       </div>
